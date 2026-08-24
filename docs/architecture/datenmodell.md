@@ -119,3 +119,37 @@ nicht getippt.
 winzigem Kopf ist unbrauchbar, ein knappes Foto mit formatfüllendem Kopf ist bestens. Aus
 Bild-Slot und Ankerregel folgt eine Mindest-Kopfhöhe von 391 px im Quellbild; Gate 1 prüft
 die Folge nach der Skalierung erneut (`LOW_EFFECTIVE_DPI`).
+
+## Das Partner-Gateway
+
+`ingest_team_order(partner_code, payload)` nimmt die **normalisierte** Nutzlast auf — in einer
+Transaktion, damit eine Bestellung entweder vollständig da ist oder gar nicht. Die Übersetzung
+aus dem Fremdformat passiert vorher in `gateway/mapping.py`, gesteuert von einer Mapping-Datei.
+
+Vier Dinge, die dabei bewusst so gebaut sind:
+
+**Unbekannte Vertragsversion bricht ab.** `assert_supported_version` lehnt ab, was nicht in
+`partner_contract_version` freigeschaltet ist. Ein stilles Fehlmapping wäre schlimmer als ein
+Ausfall — man merkt es erst an der Palette, die von der Druckerei zurückkommt.
+
+**Das Rohdaten-Archiv behält jede Fassung.** `partner_payload` ist append-only, der
+Schlüssel enthält den Inhalts-Hash. Identische Wiederlieferung ist ein No-op, geänderter
+Inhalt legt eine neue Archivzeile an. Das ist zugleich die Idempotenz und die Beweislage.
+
+**Nach der Annahme wird nichts mehr still geändert.** `accept_team_order` friert die Daten als
+Snapshot samt Hash ein. Kommt danach eine Korrektur vom Partner, entsteht ein
+`partner_change_request` im Zustand `OPEN` — die Person und die Bestellzeilen bleiben
+unverändert, bis jemand im Cockpit entscheidet.
+
+**Ausgehendes läuft über die Outbox.** `outbox_claim` sperrt mit `for update skip locked`,
+sodass zwei Worker denselben Vorgang nie doppelt senden; `outbox_settle` schreibt Erfolg oder
+exponentielles Backoff. Der `dedupe_key` ist der fachliche Schlüssel des Vorgangs — zweimal
+einstellen ist ein No-op.
+
+### Ein Token, den jemand anderes vergibt
+
+`card_twin.token_source` unterscheidet `INTERNAL` von `PARTNER`. Die Formatprüfung gilt nur
+für selbst erzeugte Token (22 Zeichen Base58, keine verwechselbaren Zeichen); ein fremder Token
+muss lediglich URL-sicher und 12 bis 48 Zeichen lang sein. Ob er noch groß genug gedruckt
+werden kann, entscheidet die QR-Rechnung in Gate 1 — ein langer Token verkleinert die Module
+und fällt dort auf, nicht erst beim Scannen.

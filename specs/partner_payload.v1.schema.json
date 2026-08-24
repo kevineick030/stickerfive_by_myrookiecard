@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://myrookiecard.de/schema/partner_payload/v1",
+  "title": "Teambestellung — normalisierte Form",
+  "description": "Die Form, die die Trading-Card-Engine entgegennimmt. Der Partner darf sein eigenes Format behalten; die Übersetzung macht eine Mapping-Datei (specs/partner_mapping.*.json), damit ein zweiter Partner keine Codeänderung kostet.",
+  "version": "1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["payload_version", "order"],
+  "properties": {
+    "payload_version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Eine unbekannte Version wird abgelehnt statt still falsch übersetzt."
+    },
+    "order": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["external_ref", "club", "team", "players"],
+      "properties": {
+        "external_ref": {
+          "type": "string", "minLength": 1, "maxLength": 128,
+          "description": "Auftragsnummer beim Partner. Zusammen mit payload_version der Idempotenzschlüssel: derselbe Auftrag zweimal geschickt erzeugt keinen zweiten Auftrag."
+        },
+        "club": {
+          "type": "object", "additionalProperties": false,
+          "required": ["external_ref", "name"],
+          "properties": {
+            "external_ref": {"type": "string", "minLength": 1},
+            "name": {"type": "string", "minLength": 1, "maxLength": 200}
+          }
+        },
+        "team": {
+          "type": "object", "additionalProperties": false,
+          "required": ["external_ref", "name", "season"],
+          "properties": {
+            "external_ref": {"type": "string", "minLength": 1},
+            "name": {"type": "string", "minLength": 1, "maxLength": 200},
+            "season": {"type": "string", "minLength": 1, "maxLength": 32},
+            "sport": {"type": ["string", "null"]},
+            "age_group": {"type": ["string", "null"]}
+          }
+        },
+        "ordering_contact": {
+          "type": "object", "additionalProperties": false,
+          "required": ["name", "email"],
+          "description": "Besteller, also Trainer oder Vereinsverantwortlicher. NICHT die abgebildete Person.",
+          "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "email": {"type": "string", "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"},
+            "phone": {"type": ["string", "null"]}
+          }
+        },
+        "fulfillment_policy": {
+          "type": ["string", "null"],
+          "enum": ["ALL_OR_NOTHING", "PARTIAL_WITH_HOLD", "PARTIAL_SHIP_IMMEDIATELY", null],
+          "description": "Ohne Angabe gilt PARTIAL_WITH_HOLD: fertige Karten werden produziert, der Transfer wartet bis zur Karenzfrist."
+        },
+        "shipment_policy": {
+          "type": ["string", "null"],
+          "enum": ["CONSOLIDATE", "SHIP_PER_WAVE", null]
+        },
+        "players": {
+          "type": "array", "minItems": 1, "maxItems": 200,
+          "items": {"$ref": "#/$defs/player"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "player": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["external_ref", "display_name"],
+      "properties": {
+        "external_ref": {
+          "type": "string", "minLength": 1, "maxLength": 128,
+          "description": "Stabile Spieler-ID beim Partner. DIE Zuordnung von Foto zu Spieler läuft ausschließlich hierüber — niemals über den Dateinamen."
+        },
+        "display_name": {
+          "type": "string", "minLength": 1, "maxLength": 80,
+          "description": "So, wie der Name auf der Karte stehen soll. Unicode ist erlaubt; die Engine prüft vor dem Druck, ob die Schrift alle Zeichen kennt."
+        },
+        "first_name": {"type": ["string", "null"]},
+        "last_name": {"type": ["string", "null"]},
+        "role": {
+          "type": ["string", "null"],
+          "enum": ["FIELD", "KEEPER", "COACH", "STAFF", null],
+          "description": "Bestimmt das Design. Ohne Angabe gilt FIELD."
+        },
+        "jersey_number": {"type": ["string", "null"], "maxLength": 8},
+        "is_minor": {"type": ["boolean", "null"]},
+        "contact_email": {"type": ["string", "null"]},
+        "guardian_name": {"type": ["string", "null"]},
+        "guardian_contact_email": {
+          "type": ["string", "null"],
+          "description": "Bei Minderjährigen zwingend, sonst läuft jede Nachforderung ins Leere."
+        },
+        "quantity": {
+          "type": ["integer", "null"], "minimum": 1, "maximum": 50,
+          "description": "Anzahl Karten dieses Spielers. Ohne Angabe 1."
+        },
+        "design_family": {
+          "type": ["string", "null"],
+          "description": "Übersteuert die Rollenregel. Nur setzen, wenn ein Spieler bewusst ein anderes Design bekommt."
+        },
+        "consent": {"$ref": "#/$defs/consent"},
+        "photo": {"$ref": "#/$defs/photo"}
+      }
+    },
+    "consent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["consent_id", "text_version", "granted_at"],
+      "description": "Die Einwilligung selbst bleibt beim Partner. Wir speichern eine eingefrorene Aussage darüber als Beweislage — und revalidieren sie unmittelbar vor jedem Transfer an die Druckerei.",
+      "properties": {
+        "consent_id": {"type": "string", "minLength": 1},
+        "text_version": {
+          "type": "string", "minLength": 1,
+          "description": "Version des Einwilligungstextes. Muss abdecken: Übermittlung an uns, automatisierte Bildverarbeitung, Druck durch einen Dritten, dauerhafte Bereitstellung der digitalen Karte über den QR-Code, und Kontaktaufnahme durch uns."
+        },
+        "subject_type": {"type": ["string", "null"], "enum": ["SELF", "GUARDIAN", null]},
+        "granted_at": {"type": "string", "minLength": 10, "description": "ISO-8601."},
+        "evidence_ref": {"type": ["string", "null"], "description": "Verweis auf den Beleg beim Partner."},
+        "hash": {"type": ["string", "null"]}
+      }
+    },
+    "photo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content_hash", "storage_ref"],
+      "properties": {
+        "content_hash": {
+          "type": "string", "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 des Originals. Erkennt Doppel-Uploads und beweist, welche Datei gedruckt wurde."
+        },
+        "storage_ref": {
+          "type": "string", "minLength": 1,
+          "description": "Abrufadresse. Signierte URL mit kurzer Laufzeit, niemals ein öffentlicher Bucket — es sind Fotos von Kindern."
+        },
+        "mime_type": {"type": ["string", "null"], "enum": ["image/jpeg", "image/png", "image/heic", "image/heif", null]},
+        "width_px": {"type": ["integer", "null"], "minimum": 1},
+        "height_px": {"type": ["integer", "null"], "minimum": 1},
+        "taken_at": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

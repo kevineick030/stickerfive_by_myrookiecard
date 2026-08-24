@@ -1,0 +1,51 @@
+{
+  "_hinweis": "ANGENOMMENE Rohform von Sticker-König. Wird ersetzt, sobald das echte Format vorliegt — dann ändert sich nur specs/partner_mapping.stickerkoenig.v1.json, kein Code.",
+  "verein": { "id": "V-4711", "name": "TSV Musterstadt e.V." },
+  "mannschaft": { "id": "M-88", "name": "D-Jugend", "saison": "25/26", "altersklasse": "D" },
+  "auftrag": {
+    "nummer": "SK-2026-0042",
+    "besteller": { "name": "Andrea Wolters", "email": "trainerin@tsv-musterstadt.example", "telefon": "0170 1234567" },
+    "spieler": [
+      {
+        "id": "SP-1001", "vorname": "Lukas", "nachname": "Meier",
+        "position": "Feldspieler", "rueckennummer": 7, "minderjaehrig": "ja",
+        "erziehungsberechtigter": { "name": "Sabine Meier", "email": "s.meier@example.org" },
+        "anzahl_karten": 3,
+        "einwilligung": { "id": "EW-1001", "textversion": "einwilligung-2026-03",
+                          "erteilt_von": "Eltern", "zeitpunkt": "2026-08-01T10:14:00Z",
+                          "beleg": "https://partner.example/consent/EW-1001" },
+        "foto": { "sha256": "AA11BB22CC33DD44EE55FF6677889900AA11BB22CC33DD44EE55FF6677889900",
+                  "url": "https://partner.example/media/SP-1001?sig=…",
+                  "typ": "image/JPEG", "breite": "1800", "hoehe": "2400",
+                  "aufgenommen_am": "2026-07-28" }
+      },
+      {
+        "id": "SP-1002", "vorname": "Tim", "nachname": "Klein",
+        "position": "Torwart", "rueckennummer": 1, "minderjaehrig": "ja",
+        "erziehungsberechtigter": { "name": "Jörg Klein", "email": "j.klein@example.org" },
+        "einwilligung": { "id": "EW-1002", "textversion": "einwilligung-2026-03",
+                          "erteilt_von": "Eltern", "zeitpunkt": "2026-08-01T10:20:00Z" },
+        "foto": { "sha256": "bb22cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900aa11",
+                  "url": "https://partner.example/media/SP-1002?sig=…",
+                  "typ": "image/jpeg", "breite": 1600, "hoehe": 2000 }
+      },
+      {
+        "id": "SP-1003", "vorname": "Đorđe", "nachname": "Đorđević",
+        "position": "Trainer", "minderjaehrig": "nein",
+        "email": "dj@tsv-musterstadt.example",
+        "einwilligung": { "id": "EW-1003", "textversion": "einwilligung-2026-03",
+                          "erteilt_von": "selbst", "zeitpunkt": "2026-08-02T08:00:00Z" },
+        "foto": { "sha256": "cc33dd44ee55ff6677889900aa11bb22cc33dd44ee55ff6677889900aa11bb22",
+                  "url": "https://partner.example/media/SP-1003?sig=…",
+                  "typ": "image/heic", "breite": 2000, "hoehe": 2600 }
+      },
+      {
+        "id": "SP-1004", "vorname": "Nele", "nachname": "Brandt",
+        "position": "Libera", "rueckennummer": 12, "minderjaehrig": "ja",
+        "erziehungsberechtigter": { "email": "brandt@example.org" },
+        "einwilligung": { "id": "EW-1004", "textversion": "einwilligung-2026-03",
+                          "erteilt_von": "Eltern", "zeitpunkt": "2026-08-03T19:30:00Z" }
+      }
+    ]
+  }
+}

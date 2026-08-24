@@ -12,8 +12,9 @@ verfügbare digitale Karte.
 | Architekturkonzept | [`docs/architecture/trading-card-engine.md`](docs/architecture/trading-card-engine.md) — Rev. 2 |
 | Datenmodell | [`db/migrations/`](db/migrations) — lauffähig, Verriegelungen getestet |
 | Slot-Schema, `photo_spec` | [`specs/`](specs) — v1, Maße und Schwellwerte sind Platzhalter |
-| Layout-Engine (Schicht B) + Gate 1 | [`engine/`](engine) — lauffähig, 23 Tests |
-| Freistellung (Schicht A), QA-Worker, Partner-Gateway, Cockpit | noch nicht begonnen |
+| Layout-Engine (Schicht B) + Gate 1 | [`engine/`](engine) — lauffähig, 24 Tests |
+| Partner-Vertrag + Anti-Corruption Layer | [`gateway/`](gateway), [`specs/`](specs) — lauffähig, 23 Tests |
+| Freistellung (Schicht A), QA-Worker, Auflösungsdienst, Cockpit | noch nicht begonnen |
 
 ## Loslegen
 
@@ -47,10 +48,28 @@ QR-Code wird in der Vorschau nur **schematisch** gezeichnet — Version, Modulan
 Modulgröße sind echt gerechnet, der Encoder gehört in die Produktion und kommt dort aus
 einer geprüften Bibliothek.
 
+## Partnerdaten aufnehmen
+
+```bash
+python3 tools/normalize_payload.py gateway/tests/fixtures/sk_raw_example.json
+python3 tools/normalize_payload.py roh.json --sql | psql     # direkt einspielen
+python3 -m unittest discover -s gateway/tests -t .
+```
+
+Der Partner behält sein eigenes Datenformat. Die Übersetzung steht als **Datei**, nicht als
+Code: [`specs/partner_mapping.stickerkoenig.v1.json`](specs/partner_mapping.stickerkoenig.v1.json).
+Ein zweiter Partner ist eine zweite Mapping-Datei. Das Fremdschema erreicht das Kernmodell nie —
+unbekannte Felder werden verworfen und vom Vertragsprüfer abgelehnt.
+
+Der Vertrag selbst ist [`specs/partner_payload.v1.schema.json`](specs/partner_payload.v1.schema.json).
+Eine Nutzlast in einer nicht freigeschalteten Version wird **laut abgelehnt** statt still falsch
+übersetzt — der Unterschied zwischen einem Alarm und 60 falschen Karten.
+
 ## Verzeichnisse
 
 ```
 engine/          Layout-Engine, Schriftmetriken, Gate 1, SVG-Vorschau
+gateway/         Vertragsprüfung und Anti-Corruption Layer
 db/migrations/   Schema, Zustandsautomat, Sichten
 db/seed/         Referenzdaten (0002 ist generiert — nicht von Hand ändern)
 db/test/         Smoke-Test der Verriegelungen
@@ -72,6 +91,12 @@ docs/            Architekturkonzept
    `card_twin.public_token` ändert sich nie, `render_artifact.fingerprint` bei jeder Korrektur.
 4. **Die Verriegelung liegt in der Datenbank, nicht in der Anwendung.** Wenn in zwei Jahren
    jemand ein Bulk-Update schreibt, hält die Datenbank.
+5. **Nichts verlässt das System zweimal.** Jeder ausgehende Vorgang läuft über die `outbox`
+   mit fachlichem Schlüssel. Ein Netzwerk-Timeout beim Transfer kostet sonst einen zweiten
+   Druckauftrag — und der kostet Papier.
+6. **Nach der Annahme ändert der Partner nichts mehr still.** Kommt eine Korrektur nach der
+   Auftragsannahme, entsteht ein Änderungsantrag im Cockpit statt einer stillen Korrektur.
+   Sonst weicht das Gedruckte vom Freigegebenen ab.
 
 ## Offene Entscheidungen vor dem ersten Druck
 

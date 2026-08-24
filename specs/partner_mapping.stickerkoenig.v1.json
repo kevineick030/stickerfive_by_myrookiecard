@@ -1,0 +1,79 @@
+{
+  "partner_code": "SK",
+  "partner_name": "Sticker-König",
+  "mapping_version": "1.0",
+  "target_payload_version": "1.0",
+  "status": "ENTWURF — die linken Pfade sind angenommen und werden ersetzt, sobald das echte Format vorliegt",
+  "note": "Deklaratives Mapping statt Code. Ein zweiter Partner ist eine zweite Datei, keine Codeänderung. Unbekannte Felder aus dem Fremdformat werden verworfen und nie ins Kernmodell durchgereicht.",
+
+  "order": {
+    "external_ref":       {"path": "auftrag.nummer"},
+    "fulfillment_policy": {"const": "PARTIAL_WITH_HOLD"},
+    "shipment_policy":    {"const": "CONSOLIDATE"},
+    "club": {
+      "external_ref": {"path": "verein.id"},
+      "name":         {"path": "verein.name"}
+    },
+    "team": {
+      "external_ref": {"path": "mannschaft.id"},
+      "name":         {"path": "mannschaft.name"},
+      "season":       {"path": "mannschaft.saison"},
+      "sport":        {"path": "mannschaft.sportart", "default": "Fussball"},
+      "age_group":    {"path": "mannschaft.altersklasse"}
+    },
+    "ordering_contact": {
+      "name":  {"path": "auftrag.besteller.name"},
+      "email": {"path": "auftrag.besteller.email"},
+      "phone": {"path": "auftrag.besteller.telefon"}
+    }
+  },
+
+  "players": {
+    "path": "auftrag.spieler",
+    "fields": {
+      "external_ref":  {"path": "id"},
+      "display_name":  {"concat": ["vorname", "nachname"], "sep": " "},
+      "first_name":    {"path": "vorname"},
+      "last_name":     {"path": "nachname"},
+      "role": {
+        "path": "position",
+        "map": {
+          "torwart": "KEEPER", "tor": "KEEPER", "goalkeeper": "KEEPER",
+          "feldspieler": "FIELD", "spieler": "FIELD",
+          "trainer": "COACH", "coach": "COACH",
+          "betreuer": "STAFF", "staff": "STAFF"
+        },
+        "lowercase": true,
+        "default": "FIELD",
+        "note": "Unbekannte Positionsbezeichnungen fallen bewusst auf FIELD zurueck, statt die Aufnahme abzubrechen — ein unbekannter Rollenname darf keine Teambestellung blockieren."
+      },
+      "jersey_number":          {"path": "rueckennummer", "as": "string"},
+      "is_minor":               {"path": "minderjaehrig", "as": "boolean", "default": false},
+      "contact_email":          {"path": "email"},
+      "guardian_name":          {"path": "erziehungsberechtigter.name"},
+      "guardian_contact_email": {"path": "erziehungsberechtigter.email"},
+      "quantity":               {"path": "anzahl_karten", "as": "integer", "default": 1},
+      "consent": {
+        "object": {
+          "consent_id":   {"path": "einwilligung.id"},
+          "text_version": {"path": "einwilligung.textversion"},
+          "subject_type": {"path": "einwilligung.erteilt_von",
+                           "map": {"selbst": "SELF", "eltern": "GUARDIAN"},
+                           "lowercase": true, "default": "SELF"},
+          "granted_at":   {"path": "einwilligung.zeitpunkt"},
+          "evidence_ref": {"path": "einwilligung.beleg"}
+        }
+      },
+      "photo": {
+        "object": {
+          "content_hash": {"path": "foto.sha256", "lowercase": true},
+          "storage_ref":  {"path": "foto.url"},
+          "mime_type":    {"path": "foto.typ", "lowercase": true},
+          "width_px":     {"path": "foto.breite", "as": "integer"},
+          "height_px":    {"path": "foto.hoehe", "as": "integer"},
+          "taken_at":     {"path": "foto.aufgenommen_am"}
+        }
+      }
+    }
+  }
+}

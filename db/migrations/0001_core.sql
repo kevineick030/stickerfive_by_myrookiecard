@@ -75,8 +75,13 @@ create table partner_payload (
   raw_hash        char(64)    not null,
   correlation_id  uuid        not null,
   received_at     timestamptz not null default now(),
-  unique (partner_id, external_ref, payload_version)
+  -- Der Hash gehoert in den Schluessel: identische Wiederlieferung ist ein
+  -- No-op, geaenderter Inhalt legt eine neue Archivzeile an. Die Tabelle ist
+  -- append-only, hier wird nie ueberschrieben.
+  unique (partner_id, external_ref, payload_version, raw_hash)
 );
+create index partner_payload_lookup
+  on partner_payload (partner_id, external_ref, received_at desc);
 
 -- ------------------------------------------------------- Vereine / Personen
 

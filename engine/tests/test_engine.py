@@ -126,6 +126,15 @@ class TestQR(unittest.TestCase):
         p = qr_plan("x", self.slot)
         self.assertEqual(p["payload_budget_bytes"], 74)
 
+    def test_langer_partnertoken_verkleinert_die_module(self):
+        # Ein fremd vergebener Token darf laenger sein als unserer. Die Folge
+        # muss sichtbar werden, nicht stillschweigend hingenommen.
+        kurz = qr_plan("https://k.mrc.cards/k/" + "x" * 22, self.slot)
+        lang = qr_plan("https://k.mrc.cards/k/" + "x" * 48, self.slot)
+        self.assertGreater(lang["version"], kurz["version"])
+        self.assertLess(lang["module_mm"], kurz["module_mm"])
+        self.assertTrue(lang["module_ok"], "48 Zeichen muessen noch druckbar sein")
+
     def test_zu_lange_nutzlast_bekommt_keine_version(self):
         p = qr_plan("https://" + "a" * 400 + "/k/x", self.slot)
         self.assertIsNone(p["version"])

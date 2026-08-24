@@ -20,7 +20,9 @@ for f in db/seed/*.sql; do
 done
 
 if [[ "${1:-}" == "--with-test" ]]; then
-  echo "== smoke test"
-  psql -v ON_ERROR_STOP=1 -f db/test/smoke_test.sql
+  for t in db/test/*.sql; do
+    echo "== test $t"
+    psql -v ON_ERROR_STOP=1 -f "$t"
+  done
 fi
 echo "== fertig"
