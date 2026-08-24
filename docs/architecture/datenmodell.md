@@ -178,3 +178,28 @@ der ersten Fassung: Eine IP, die zu oft danebengegriffen hatte, bekam anschließ
 einem gültigen Code nichts mehr. Bei 128 Bit Zufall im Token ist Durchprobieren ohnehin
 aussichtslos — die Bremse ist eine Kostenfrage, keine Sicherheitsmaßnahme, und wurde
 entsprechend umgebaut.
+
+## Das Cockpit
+
+Die Oberfläche (`cockpit/`) liest ausschließlich aus den Sichten und enthält keine Fachlogik —
+`v_cockpit_tiles` liefert die Statusleiste in einer Zeile, `v_cockpit_photo_trend` die
+Tagesreihe, `v_team_board` das Kachelraster einer Bestellung.
+
+**Der Not-Aus ist die einzige schreibende Aktion.** Er setzt `system_config.ops.transfers_paused`,
+und `print_batch_guard()` weist damit jede Übertragung an die Druckerei ab. Die Verriegelung
+liegt also in der Datenbank: Auch ein Hintergrunddienst, der die Oberfläche nie sieht, kommt
+nicht daran vorbei. Jede Änderung wird als `domain_event` protokolliert, und das Formular trägt
+ein Sitzungsmerkmal, damit eine fremde Seite den Schalter nicht auslösen kann.
+
+### Warum genau ein Diagramm
+
+Das Cockpit zeigt eine einzige Kurve: die Ausschussquote der Fotos über vierzehn Tage. Der
+naheliegende Entwurf wäre ein gestapelter Balken mit den Qualitätsklassen A, B und C gewesen —
+er scheitert daran, dass drei benachbarte Statustöne bei Rot-Grün-Schwäche nicht sicher
+trennbar sind, und ein dunkleres Bernstein die Unterscheidbarkeit vollends verliert (geprüft,
+nicht geschätzt).
+
+Die Frage des Betreibers lautet ohnehin nicht „wie ist die Verteilung", sondern **„steigt der
+Ausschuss?"** — das ist eine Reihe, kein Stapel. Damit entfällt das Farbproblem, und die Kurve
+beantwortet die Frage direkter. Alles andere im Cockpit ist Kachel oder Tabelle: Zahlen, die man
+vergleicht, gehören in Spalten, nicht in Balken.

@@ -15,7 +15,8 @@ verfügbare digitale Karte.
 | Layout-Engine (Schicht B) + Gate 1 | [`engine/`](engine) — lauffähig, 24 Tests |
 | Partner-Vertrag + Anti-Corruption Layer | [`gateway/`](gateway), [`specs/`](specs) — lauffähig, 23 Tests |
 | Auflösungsdienst hinter dem QR-Code | [`resolver/`](resolver) — lauffähig, 21 Tests |
-| Freistellung (Schicht A), QA-Worker, Cockpit | noch nicht begonnen |
+| Admin-Cockpit | [`cockpit/`](cockpit) — lauffähig, 21 Tests |
+| Freistellung (Schicht A), QA-Worker, PDF-Ausgang | noch nicht begonnen |
 
 ## Loslegen
 
@@ -69,19 +70,25 @@ Eine Nutzlast in einer nicht freigeschalteten Version wird **laut abgelehnt** st
 ## Die ganze Kette einmal durchfahren
 
 ```bash
-export PGDATABASE=tce
-./db/run.sh
-python3 tools/demo_flow.py        # Partnerdaten → gedruckte Karten, gibt die QR-Codes aus
-python3 tools/run_resolver.py     # danach: http://127.0.0.1:8088/k/<code>
+./tools/dev_db.sh --demo          # Datenbank anlegen, Migrationen, Beispieldaten
+export PGHOST=/tmp/pgs PGPORT=5433 PGUSER=tce PGDATABASE=tce
+
+python3 tools/run_cockpit.py      # http://127.0.0.1:8099/
+python3 tools/run_resolver.py     # http://127.0.0.1:8088/k/<code>
 ```
 
-`demo_flow.py` registriert den Partner, nimmt eine Teambestellung auf, friert sie ein, baut
-für jede Karte ein echtes Render-Manifest, lässt es durch Gate 1, setzt QA-Verdikte, bildet
-Druck-Batches nach Druckspezifikation, überträgt sie und markiert die Karten als gedruckt.
-Erst damit werden die digitalen Karten abrufbar.
+`dev_db.sh --demo` fährt die ganze Kette: Partner registrieren, Teambestellung aufnehmen,
+einfrieren, rendern, Gate 1, QA, Druck-Batches, drucken — und legt danach Betriebsdaten an
+(drei weitere Aufträge, Blocker, eine Fotoqualitätsreihe über 14 Tage, gestörte Ausgänge).
 
-Der Auflösungsdienst ist bewusst winzig und kennt nur eine Frage: welcher Karteninhalt gehört
-zu diesem Token. Er soll noch laufen, wenn die Engine dreimal umgebaut wurde.
+Das **Cockpit** hat drei Flughöhen: Zustand der Fabrik, Arbeitsvorrat, Forensik am Einzelfall.
+Es liest ausschließlich aus den Sichten der Datenbank und enthält keine Fachlogik. Schreibend
+gibt es genau eine Aktion — den **Not-Aus**, der die Übertragung an die Druckerei anhält. Er
+wirkt als Verriegelung in der Datenbank, nicht in der Oberfläche, damit ihn auch ein
+Hintergrunddienst nicht umgehen kann.
+
+Der **Auflösungsdienst** ist bewusst winzig und kennt nur eine Frage: welcher Karteninhalt
+gehört zu diesem Token. Er soll noch laufen, wenn die Engine dreimal umgebaut wurde.
 
 ## Verzeichnisse
 
@@ -89,6 +96,7 @@ zu diesem Token. Er soll noch laufen, wenn die Engine dreimal umgebaut wurde.
 engine/          Layout-Engine, Schriftmetriken, Gate 1, SVG-Vorschau
 gateway/         Vertragsprüfung und Anti-Corruption Layer
 resolver/        Auflösungsdienst hinter dem QR-Code
+cockpit/         Admin-Oberfläche auf den Sichten der Datenbank
 db/migrations/   Schema, Zustandsautomat, Sichten
 db/seed/         Referenzdaten (0002 ist generiert — nicht von Hand ändern)
 db/test/         Smoke-Test der Verriegelungen

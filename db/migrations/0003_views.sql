@@ -165,7 +165,10 @@ order by pb.created_at desc;
 -- Das Team-Board: eine Zeile je Karte, farbcodierbar.
 create or replace view v_team_board as
 select team_order_id, order_ref, team_name, club_name,
-       card_item_id, player_name, player_role, design_family, copy_index,
+       card_item_id, player_name, player_role, design_family,
+       -- Kopie x von y: y ist die Menge DIESER Bestellzeile, nicht die Zahl
+       -- gleichnamiger Personen. Zwei Kinder koennen gleich heissen.
+       copy_index, quantity,
        state, qr_token, photo_quality_class,
        case when state = 'CANCELLED'   then 'CANCELLED'
             when has_hard_blocker       then 'HARD'
