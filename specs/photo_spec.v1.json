@@ -1,0 +1,181 @@
+{
+  "version": "1.0.0",
+  "status": "PLATZHALTER - Schwellwerte nach den ersten Betriebswochen aus echten Ablehnungsgruenden nachschaerfen",
+  "applies_to_slot_schema": "TC-A@1.0.0",
+  "note": "Eine Quelle, drei Ausspielungen: die Erklaerstrecke beim Partner, die Sofortpruefung im Upload-Dialog (Gate -1) und die verbindliche Eingangsvalidierung (Gate 0) werden alle hieraus abgeleitet. Ohne gemeinsame Quelle laufen sie garantiert auseinander.",
+
+  "normalization": {
+    "note": "Laeuft VOR jeder Pruefung. Zwei Fallen, die jedes Foto-Backend einmal treffen.",
+    "steps": [
+      { "id": "heic_decode",   "reason": "iPhone-Standardformat, viele Bibliotheken lesen es nicht" },
+      { "id": "exif_rotate",   "reason": "nicht angewandte EXIF-Rotation laesst das Bild quer liegen; jede Landmark-Pruefung schlaegt fehl und meldet faelschlich 'kein Gesicht erkannt'" },
+      { "id": "strip_exif_pii", "reason": "GPS und Geraetedaten entfernen, bevor das Asset gespeichert wird" },
+      { "id": "to_srgb",       "reason": "einheitlicher Arbeitsfarbraum vor der Freistellung" }
+    ]
+  },
+
+  "accepted_formats": ["image/jpeg", "image/png", "image/heic", "image/heif"],
+  "max_upload_bytes": 26214400,
+
+  "rules": [
+    {
+      "id": "resolution",
+      "metric": "min(width_px, height_px * 0.75)",
+      "pass": ">= 1200 x 1600 px",
+      "class_b_from": "900 x 1200 px",
+      "fail_below": "900 x 1200 px",
+      "reason_code": "PHOTO_TOO_SMALL",
+      "message_de": "Das Bild ist zu klein für den Druck.",
+      "hint_de": "Schick uns das Originalfoto statt einer verkleinerten Kopie aus einem Chat.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "effective_dpi_after_anchor",
+      "metric": "Pixel je mm im Bild-Slot NACH der Ankerskalierung",
+      "pass": ">= 300 dpi",
+      "fail_below": "250 dpi",
+      "reason_code": "PHOTO_LOW_EFFECTIVE_DPI",
+      "message_de": "Nach dem Zuschnitt auf die Kartengröße reicht die Auflösung nicht.",
+      "hint_de": "Geh näher ran, statt später hineinzuzoomen.",
+      "note": "Der haeufigste STILLE Fehler bei Laienfotos: ein knappes Foto rutscht durch das Heranskalieren des Kopfes unter die Grenze. Wird in Gate 1 erneut am Manifest geprueft.",
+      "checked_by": ["GATE0", "GATE1"]
+    },
+    {
+      "id": "single_face",
+      "metric": "Anzahl erkannter Gesichter",
+      "pass": "genau 1",
+      "reason_code": "PHOTO_FACE_COUNT",
+      "message_de": "Auf dem Bild ist nicht genau eine Person zu sehen.",
+      "hint_de": "Bitte ein Foto, auf dem nur der Spieler zu sehen ist.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "head_height",
+      "metric": "Kopfhöhe / Bildhöhe",
+      "pass": "0.35 - 0.55",
+      "class_b_from": "0.28",
+      "reason_code": "PHOTO_HEAD_SIZE",
+      "message_de": "Der Kopf ist zu klein beziehungsweise zu groß im Bild.",
+      "hint_de": "Oberkörperfoto: von der Kopfoberkante bis etwa zur Brustmitte.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "eye_line_position",
+      "metric": "Augenlinie / Bildhöhe",
+      "pass": "0.20 - 0.45",
+      "reason_code": "PHOTO_FRAMING",
+      "message_de": "Der Kopf sitzt zu weit oben oder zu weit unten.",
+      "hint_de": "Augen etwa im oberen Drittel, Kopf mittig.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "horizontal_centering",
+      "metric": "|Kopfmitte - Bildmitte| / Bildbreite",
+      "pass": "<= 0.10",
+      "class_b_from": "0.18",
+      "reason_code": "PHOTO_OFF_CENTER",
+      "message_de": "Der Spieler steht nicht mittig im Bild.",
+      "hint_de": "Stell dich in die Mitte des Bildausschnitts.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "shoulders_visible",
+      "metric": "Schulterlinie im Bild erkannt",
+      "pass": "true",
+      "reason_code": "PHOTO_NO_SHOULDERS",
+      "message_de": "Die Schultern sind nicht im Bild.",
+      "hint_de": "Etwas weiter weg vom Handy - der Oberkörper gehört mit aufs Bild.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "sharpness",
+      "metric": "Laplace-Varianz, auf die Gesichtsregion normiert",
+      "pass": ">= 120",
+      "class_b_from": "70",
+      "reason_code": "PHOTO_BLURRY",
+      "message_de": "Das Bild ist unscharf.",
+      "hint_de": "Halt das Handy still und tipp vorher aufs Gesicht, um scharf zu stellen.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "exposure",
+      "metric": "Anteil ausgefressener Lichter/Tiefen in der Gesichtsregion",
+      "pass": "<= 2 %",
+      "class_b_from": "8 %",
+      "reason_code": "PHOTO_EXPOSURE",
+      "message_de": "Das Gesicht ist zu hell oder zu dunkel.",
+      "hint_de": "Nicht gegen die Sonne oder ein Fenster fotografieren - das Licht sollte von vorne kommen.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "background_calmness",
+      "metric": "Kantendichte im Randbereich ausserhalb der Personenmaske",
+      "pass": "<= 0.08",
+      "class_b_from": "0.16",
+      "reason_code": "PHOTO_BUSY_BACKGROUND",
+      "message_de": "Der Hintergrund ist zu unruhig.",
+      "hint_de": "Stell dich vor eine glatte Wand oder eine ruhige Fläche.",
+      "note": "Der wichtigste Einzelwert fuer die Freistellungsquote.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "subject_background_contrast",
+      "metric": "Farbabstand Trikot/Haar zu Hintergrund",
+      "pass": ">= Schwelle",
+      "reason_code": "PHOTO_LOW_CONTRAST_BG",
+      "message_de": "Der Hintergrund hat fast dieselbe Farbe wie dein Trikot.",
+      "hint_de": "Such dir eine Wand in einer anderen Farbe als dein Trikot.",
+      "checked_by": ["GATE0"]
+    },
+    {
+      "id": "occlusion",
+      "metric": "Vision-Modell: Mütze, Kapuze, verspiegelte Brille, Hand im Gesicht",
+      "pass": "keine",
+      "reason_code": "PHOTO_OCCLUSION",
+      "message_de": "Etwas verdeckt das Gesicht.",
+      "hint_de": "Mütze und Kapuze bitte ab, Sonnenbrille auch.",
+      "checked_by": ["GATE0"]
+    },
+    {
+      "id": "pose",
+      "metric": "Kopfrotation (Yaw/Pitch)",
+      "pass": "|yaw| <= 20°, |pitch| <= 15°",
+      "class_b_from": "|yaw| <= 30°",
+      "reason_code": "PHOTO_POSE",
+      "message_de": "Der Kopf ist zu stark gedreht oder geneigt.",
+      "hint_de": "Schau frontal in die Kamera - so wie auf einem Sammelbild.",
+      "checked_by": ["PRECHECK", "GATE0"]
+    },
+    {
+      "id": "safe_area",
+      "metric": "Kopf vollstaendig innerhalb der Sicherheitszone des Bild-Slots",
+      "pass": "true",
+      "reason_code": "PHOTO_HEAD_CLIPPED",
+      "message_de": "Der Kopf würde beim Beschnitt angeschnitten.",
+      "hint_de": "Etwas mehr Platz über dem Kopf lassen.",
+      "checked_by": ["GATE0", "GATE1"]
+    }
+  ],
+
+  "classes": {
+    "A": { "rule": "alle Regeln im pass-Bereich", "handling": "geht ohne Zwischenschritt in die Freistellung" },
+    "B": {
+      "rule": "keine Regel unterhalb ihrer fail-Schwelle, mindestens eine im class_b-Bereich",
+      "handling": "automatische Aufbereitung: Aufhellung, Rauschminderung, moderates Upscaling, Farbangleichung an die Template-Farbwelt",
+      "note": "Erzeugt IMMER eine neue asset_version mit eigener processing_version. Das Original bleibt unangetastet, der Fingerprint aendert sich, die Kette bleibt lueckenlos."
+    },
+    "C": {
+      "rule": "mindestens eine Regel unterhalb ihrer fail-Schwelle, oder ein HARD-Kriterium verletzt",
+      "handling": "Blocker PHOTO_REJECTED mit reason_codes; Nachforderung ueber das Kommunikationsmodul"
+    }
+  },
+
+  "explainer": {
+    "form": "tonlose Schleifenanimation, 8-12 Sekunden, neben dem Upload-Feld",
+    "rationale": "Ein Video wird weggeklickt. Eine Animation, die neben dem Upload-Feld laeuft, wird gesehen.",
+    "must_work_on": "Mobiltelefon - dort wird der Upload stattfinden",
+    "content": "Gegenueberstellung richtig/falsch mit den vier haeufigsten Fehlern",
+    "initial_four": ["background_calmness", "head_height", "exposure", "sharpness"],
+    "review": "Nach vier Betriebswochen aus den tatsaechlichen reason_codes neu bestimmen."
+  }
+}

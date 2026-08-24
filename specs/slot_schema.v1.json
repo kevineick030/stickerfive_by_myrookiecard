@@ -1,0 +1,173 @@
+{
+  "id": "TC-A",
+  "version": "1.0.0",
+  "status": "PLATZHALTER - Masse und Feldauswahl vor dem ersten Druck bestaetigen",
+  "note": "Alle vier Templates teilen dieses Schema. Es unterscheiden sich nur Grafik, Farbwelt und Druckspezifikation. Ergebnis: ein Renderer, ein QA-Regelsatz, ein Golden Set.",
+
+  "geometry": {
+    "unit": "mm",
+    "origin": "oben links des Endformats (Trim). Negative Werte reichen in den Anschnitt.",
+    "trim_width": 63.0,
+    "trim_height": 88.0,
+    "bleed": 2.0,
+    "safe_margin": 4.0,
+    "min_dpi": 300
+  },
+
+  "front": {
+    "slots": [
+      {
+        "id": "photo",
+        "type": "image",
+        "box": { "x": -2.0, "y": -2.0, "w": 67.0, "h": 72.0 },
+        "fit_mode": "ANCHOR",
+        "anchors": {
+          "eye_line_ratio": 0.38,
+          "head_height_ratio": 0.46,
+          "center_x_ratio": 0.50,
+          "tolerance_ratio": 0.02
+        },
+        "note": "Die Ankerregel ist der Grund, warum 60 unterschiedlich geschnittene Handyfotos wie ein Set aussehen. Der Renderer berechnet Skalierung und Versatz aus den Landmarks aus Schicht A.",
+        "required": true
+      },
+      {
+        "id": "club_logo",
+        "type": "image",
+        "box": { "x": 4.0, "y": 4.0, "w": 12.0, "h": 12.0 },
+        "fit_mode": "COVER",
+        "source": "team_design_context.club_logo",
+        "required": false
+      },
+      {
+        "id": "season",
+        "type": "text",
+        "box": { "x": 43.0, "y": 4.5, "w": 16.0, "h": 4.0 },
+        "source": "team.season",
+        "font": "display", "size_pt": 8.0, "min_size_pt": 7.0,
+        "align": "right", "transform": "none", "max_lines": 1,
+        "required": true
+      },
+      {
+        "id": "player_name",
+        "type": "text",
+        "box": { "x": 4.0, "y": 71.0, "w": 42.0, "h": 8.0 },
+        "source": "person.display_name",
+        "font": "display", "size_pt": 14.0, "min_size_pt": 8.5,
+        "align": "left", "transform": "uppercase", "max_lines": 2,
+        "qa_region": true,
+        "note": "Prueffeld fuer Gate 3a. Autofit unter min_size_pt ist ein Gate-1-Fehler, kein stiller Fallback.",
+        "required": true
+      },
+      {
+        "id": "jersey_number",
+        "type": "text",
+        "box": { "x": 47.0, "y": 70.0, "w": 12.0, "h": 11.0 },
+        "source": "person.jersey_number",
+        "font": "display", "size_pt": 22.0, "min_size_pt": 14.0,
+        "align": "right", "transform": "none", "max_lines": 1,
+        "qa_region": true,
+        "required": false
+      },
+      {
+        "id": "position",
+        "type": "text",
+        "box": { "x": 4.0, "y": 79.5, "w": 30.0, "h": 4.0 },
+        "source": "person.role_label",
+        "font": "body", "size_pt": 7.5, "min_size_pt": 6.5,
+        "align": "left", "transform": "uppercase", "letter_spacing_em": 0.08, "max_lines": 1,
+        "required": true
+      },
+      {
+        "id": "club_name",
+        "type": "text",
+        "box": { "x": 4.0, "y": 83.5, "w": 42.0, "h": 4.0 },
+        "source": "club.name",
+        "font": "body", "size_pt": 7.5, "min_size_pt": 6.0,
+        "align": "left", "transform": "none", "max_lines": 1,
+        "qa_region": true,
+        "required": true
+      }
+    ]
+  },
+
+  "back": {
+    "slots": [
+      {
+        "id": "player_name_back",
+        "type": "text",
+        "box": { "x": 4.0, "y": 8.0, "w": 55.0, "h": 7.0 },
+        "source": "person.display_name",
+        "font": "display", "size_pt": 12.0, "min_size_pt": 8.0,
+        "align": "center", "transform": "uppercase", "max_lines": 2,
+        "qa_region": true,
+        "required": true
+      },
+      {
+        "id": "club_season_back",
+        "type": "text",
+        "box": { "x": 4.0, "y": 16.0, "w": 55.0, "h": 4.5 },
+        "source": "club.name + ' · ' + team.season",
+        "font": "body", "size_pt": 8.0, "min_size_pt": 6.5,
+        "align": "center", "max_lines": 1,
+        "required": true
+      },
+      {
+        "id": "stats_block",
+        "type": "keyvalue",
+        "box": { "x": 8.0, "y": 24.0, "w": 47.0, "h": 16.0 },
+        "source": "person.stats",
+        "font": "body", "size_pt": 7.0, "min_size_pt": 6.0,
+        "max_rows": 4,
+        "required": false
+      },
+      {
+        "id": "qr",
+        "type": "qr",
+        "box": { "x": 21.5, "y": 42.0, "w": 20.0, "h": 20.0 },
+        "payload_source": "card_twin.public_token",
+        "url_pattern": "https://{resolver_host}/k/{token}",
+        "error_correction": "Q",
+        "min_module_mm": 0.40,
+        "quiet_zone_modules": 4,
+        "max_payload_bytes": 47,
+        "forbid_finishing_overlay": true,
+        "min_contrast_ratio": 7.0,
+        "note": "PAYLOAD-BUDGET: 47 Byte bei ECC Q und maximal 37 Modulen. 22 Zeichen Token plus Schema und Host duerfen das nicht ueberschreiten - der Resolver-Host muss also KURZ sein (z. B. 'k.mrc.cards' = 42 Byte gesamt). Ein langer Host erzwingt einen groesseren Code oder eine groessere Karte. Gate 1 prueft die Geometrie, Gate 3d liest den Code aus dem gerasterten PDF zurueck.",
+        "required": true
+      },
+      {
+        "id": "qr_caption",
+        "type": "text",
+        "box": { "x": 4.0, "y": 64.0, "w": 55.0, "h": 4.0 },
+        "static_text_de": "Scanne den Code für deine digitale Karte",
+        "font": "body", "size_pt": 7.0, "min_size_pt": 6.0,
+        "align": "center", "max_lines": 1,
+        "required": true
+      },
+      {
+        "id": "legal_line",
+        "type": "text",
+        "box": { "x": 4.0, "y": 79.0, "w": 55.0, "h": 6.0 },
+        "source": "config.legal_line",
+        "font": "body", "size_pt": 5.0, "min_size_pt": 5.0,
+        "align": "center", "max_lines": 2,
+        "required": true
+      }
+    ]
+  },
+
+  "families": [
+    { "id": "TC-FIELD",      "name": "Feldspieler",      "role": "FIELD",  "print_spec": "PS-STD",  "slot_overrides": {} },
+    { "id": "TC-KEEPER",     "name": "Torwart",          "role": "KEEPER", "print_spec": "PS-STD",  "slot_overrides": {} },
+    { "id": "TC-COACH-GOLD", "name": "Trainer · Gold",   "role": "COACH",  "print_spec": "PS-GOLD", "slot_overrides": {} },
+    {
+      "id": "TC-TEAM", "name": "Mannschaftskarte", "role": null, "print_spec": "PS-STD",
+      "slot_overrides": {
+        "photo":       { "fit_mode": "COVER" },
+        "player_name": { "source": "team.name" },
+        "jersey_number": { "required": false, "hidden": true }
+      },
+      "note": "Die EINE bewusste Abweichung vom gemeinsamen Schema: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot. Alles andere bleibt identisch."
+    }
+  ]
+}
