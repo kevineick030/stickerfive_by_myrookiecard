@@ -55,7 +55,7 @@ insert into system_config (key, value, unit, is_placeholder, affects_customer_pr
   ('retention.cutout_months',              '24',   'Monate',   true,  false, 'Freisteller, ermöglicht Nachdruck ohne neues Foto'),
   ('retention.print_artifact_months',      '24',   'Monate',   true,  false, 'Druck-PDF für Reklamation und Nachdruck'),
   ('twin.availability_commitment_years',   '10',   'Jahre',    true,  true,  'Verfügbarkeitszusage digitale Karte — AGB, zu entscheiden'),
-  ('twin.resolver_host',                   'k.mrc.cards', null, true, false, 'MUSS KURZ SEIN: QR-Payload-Budget 47 Byte bei ECC Q'),
+  ('twin.resolver_host',                   'k.mrc.cards', null, true, false, 'Domain der digitalen Karte. Budget 74 Byte — kurz ist besser (größere QR-Module), aber nicht zwingend'),
   ('design.template_count',                '4',    null,       false, false, 'Anzahl der Templates zum Start')
 on conflict (key) do update
   set value = excluded.value, unit = excluded.unit,
@@ -64,12 +64,20 @@ on conflict (key) do update
       description_de = excluded.description_de;
 
 -- ---------------------------------------------------- Design-Familien
--- token_per_copy = false: ein QR-Token je Karteninhalt (Standard).
--- Diese Entscheidung wird GEDRUCKT und ist danach nicht korrigierbar.
+-- ENTSCHIEDEN: token_per_copy = true. Jede physische Karte traegt einen
+-- eigenen QR-Token und ist damit einzeln identifizierbar - Voraussetzung
+-- fuer eine spaetere Tausch- oder Echtheitsfunktion.
+-- Kostenfolge: drei Kopien = drei Rueckseiten. Die Vorderseite wird ueber
+-- render_artifact.front_fingerprint wiederverwendet, ebenso die teuren
+-- QA-Gates. Siehe docs/architecture/datenmodell.md.
+--
+-- Die Namen sind Platzhalter, bis der Zuschnitt feststeht.
 insert into design_family (id, name, applies_to_role, token_per_copy, is_placeholder) values
-  ('TC-FIELD',      'Feldspieler',       'FIELD',  false, true),
-  ('TC-KEEPER',     'Torwart',           'KEEPER', false, true),
-  ('TC-COACH-GOLD', 'Trainer · Gold',    'COACH',  false, true),
-  ('TC-TEAM',       'Mannschaftskarte',  null,     false, true)
+  ('DESIGN-1', 'Design 1', 'FIELD',  true, true),
+  ('DESIGN-2', 'Design 2', 'KEEPER', true, true),
+  ('DESIGN-3', 'Design 3', 'COACH',  true, true),
+  ('DESIGN-4', 'Design 4', null,     true, true)
 on conflict (id) do update
-  set name = excluded.name, applies_to_role = excluded.applies_to_role;
+  set name = excluded.name,
+      applies_to_role = excluded.applies_to_role,
+      token_per_copy = excluded.token_per_copy;

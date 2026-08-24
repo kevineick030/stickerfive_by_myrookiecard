@@ -356,10 +356,17 @@ create table shipment (
   created_at    timestamptz not null default now()
 );
 
--- Content-addressed: gleicher Input -> gleicher Fingerprint -> ein Rendering
--- fuer alle identischen Kopien.
+-- Content-addressed. Der Fingerprint deckt die GANZE Karte ab.
+--
+-- front_fingerprint deckt nur die Vorderseite ab. Weil jede physische Kopie
+-- einen eigenen QR-Token traegt (design_family.token_per_copy = true),
+-- unterscheiden sich drei Kopien NUR auf der Rueckseite. Die Vorderseite -
+-- Foto, Freistellung, Komposition, also der teure Teil - wird einmal
+-- gerendert und wiederverwendet. Ebenso die teuren QA-Gates 3a bis 3c:
+-- sie laufen je Vorderseite, nur die QR-Ruecklesung laeuft je Kopie.
 create table render_artifact (
   fingerprint       char(64) primary key,
+  front_fingerprint char(64) not null,
   design_version_id uuid not null references design_version(id),
   engine_version    text not null,
   pdf_ref           text not null,
@@ -369,6 +376,8 @@ create table render_artifact (
   delete_after      timestamptz,
   created_at        timestamptz not null default now()
 );
+-- Findet eine bereits gerenderte, wiederverwendbare Vorderseite.
+create index render_artifact_front on render_artifact (front_fingerprint);
 
 -- Ein aktuelles Verdikt je Artefakt. Die Historie liegt im domain_event.
 create table qa_verdict (

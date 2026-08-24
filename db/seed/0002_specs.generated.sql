@@ -38,7 +38,17 @@ insert into slot_schema (id, version, definition) values
           "tolerance_ratio": 0.02
         },
         "note": "Die Ankerregel ist der Grund, warum 60 unterschiedlich geschnittene Handyfotos wie ein Set aussehen. Der Renderer berechnet Skalierung und Versatz aus den Landmarks aus Schicht A.",
-        "required": true
+        "required": true,
+        "derived_requirements": {
+          "head_height_mm_on_card": 33.12,
+          "min_head_height_px": 392,
+          "note": "HERGELEITET aus box.h und head_height_ratio, nicht geschaetzt: damit der Kopf nach der Ankerskalierung noch 300 dpi hat, muss er im Quellbild mindestens 392 px hoch sein. tools/photo_requirements.py rechnet das aus dem Schema nach; Gate 1 prueft die Folge (LOW_EFFECTIVE_DPI).",
+          "min_image_width_per_head_height": 2.023,
+          "min_above_eye_per_head_height": 0.826,
+          "min_below_eye_per_head_height": 1.348,
+          "framing_note": "Damit das Bild den Slot ohne Aufskalieren deckt, muss um den Kopf herum genug Bild liegen: Breite >= 2.02 x Kopfhoehe, ueber der Augenlinie >= 0.83 x Kopfhoehe, darunter >= 1.35 x Kopfhoehe. Alles aus box und anchors hergeleitet, siehe tools/photo_requirements.py."
+        },
+        "coverage_scale_tolerance": 0.15
       },
       {
         "id": "club_logo",
@@ -76,9 +86,9 @@ insert into slot_schema (id, version, definition) values
         "type": "text",
         "box": {
           "x": 4.0,
-          "y": 71.0,
+          "y": 70.0,
           "w": 42.0,
-          "h": 8.0
+          "h": 7.5
         },
         "source": "person.display_name",
         "font": "display",
@@ -96,7 +106,7 @@ insert into slot_schema (id, version, definition) values
         "type": "text",
         "box": {
           "x": 47.0,
-          "y": 70.0,
+          "y": 69.5,
           "w": 12.0,
           "h": 11.0
         },
@@ -115,9 +125,9 @@ insert into slot_schema (id, version, definition) values
         "type": "text",
         "box": {
           "x": 4.0,
-          "y": 79.5,
+          "y": 77.6,
           "w": 30.0,
-          "h": 4.0
+          "h": 3.2
         },
         "source": "person.role_label",
         "font": "body",
@@ -134,9 +144,9 @@ insert into slot_schema (id, version, definition) values
         "type": "text",
         "box": {
           "x": 4.0,
-          "y": 83.5,
+          "y": 80.8,
           "w": 42.0,
-          "h": 4.0
+          "h": 3.2
         },
         "source": "club.name",
         "font": "body",
@@ -218,10 +228,10 @@ insert into slot_schema (id, version, definition) values
         "error_correction": "Q",
         "min_module_mm": 0.4,
         "quiet_zone_modules": 4,
-        "max_payload_bytes": 47,
+        "max_payload_bytes": 74,
         "forbid_finishing_overlay": true,
         "min_contrast_ratio": 7.0,
-        "note": "PAYLOAD-BUDGET: 47 Byte bei ECC Q und maximal 37 Modulen. 22 Zeichen Token plus Schema und Host duerfen das nicht ueberschreiten - der Resolver-Host muss also KURZ sein (z. B. 'k.mrc.cards' = 42 Byte gesamt). Ein langer Host erzwingt einen groesseren Code oder eine groessere Karte. Gate 1 prueft die Geometrie, Gate 3d liest den Code aus dem gerasterten PDF zurueck.",
+        "note": "PAYLOAD-BUDGET: 74 Byte. Hergeleitet aus der Boxgroesse, nicht geschaetzt - bei 20 mm Box, 4 Modulen Ruhezone und 0.40 mm Mindestmodul ist Version 6 (41 Module) die groesste noch sauber druckbare Version, und die traegt im Byte-Modus bei ECC Q 74 Byte. Der Token belegt 22, 'https://' und '/k/' weitere 11 - fuer den Host bleiben rund 40 Zeichen. Praktisch passt damit jeder realistische Domainname. Ein KURZER Host ist trotzdem besser: er senkt die QR-Version und vergroessert damit die Module (k.mrc.cards -> 0.49 mm, karte.myrookiecard.de -> 0.44 mm), was das Scannen einer zerkratzten Karte robuster macht. engine/layout.py:qr_plan rechnet das je Karte aus, Gate 1 prueft es.",
         "required": true
       },
       {
@@ -246,9 +256,9 @@ insert into slot_schema (id, version, definition) values
         "type": "text",
         "box": {
           "x": 4.0,
-          "y": 79.0,
+          "y": 77.8,
           "w": 55.0,
-          "h": 6.0
+          "h": 5.6
         },
         "source": "config.legal_line",
         "font": "body",
@@ -262,31 +272,38 @@ insert into slot_schema (id, version, definition) values
   },
   "families": [
     {
-      "id": "TC-FIELD",
-      "name": "Feldspieler",
+      "id": "DESIGN-1",
+      "name": "Design 1",
       "role": "FIELD",
       "print_spec": "PS-STD",
-      "slot_overrides": {}
+      "token_per_copy": true,
+      "slot_overrides": {},
+      "note": "Vorgesehen fuer Feldspieler. Name ist ein Platzhalter."
     },
     {
-      "id": "TC-KEEPER",
-      "name": "Torwart",
+      "id": "DESIGN-2",
+      "name": "Design 2",
       "role": "KEEPER",
       "print_spec": "PS-STD",
-      "slot_overrides": {}
+      "token_per_copy": true,
+      "slot_overrides": {},
+      "note": "Vorgesehen fuer Torwart. Name ist ein Platzhalter."
     },
     {
-      "id": "TC-COACH-GOLD",
-      "name": "Trainer · Gold",
+      "id": "DESIGN-3",
+      "name": "Design 3",
       "role": "COACH",
       "print_spec": "PS-GOLD",
-      "slot_overrides": {}
+      "token_per_copy": true,
+      "slot_overrides": {},
+      "note": "PLATZHALTER-ANNAHME: auf PS-GOLD gesetzt, damit der Pfad mit zwei Druckspezifikationen real durchlaufen wird. Auf PS-STD aendern, sobald feststeht, ob es eine Veredelung gibt."
     },
     {
-      "id": "TC-TEAM",
-      "name": "Mannschaftskarte",
+      "id": "DESIGN-4",
+      "name": "Design 4",
       "role": null,
       "print_spec": "PS-STD",
+      "token_per_copy": true,
       "slot_overrides": {
         "photo": {
           "fit_mode": "COVER"
@@ -299,9 +316,15 @@ insert into slot_schema (id, version, definition) values
           "hidden": true
         }
       },
-      "note": "Die EINE bewusste Abweichung vom gemeinsamen Schema: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot. Alles andere bleibt identisch."
+      "note": "Vorgesehen als Mannschaftskarte und damit die EINE bewusste Abweichung: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot."
     }
-  ]
+  ],
+  "token_policy": {
+    "decision": "ein QR-Token je physischer Kopie",
+    "rationale": "macht jede gedruckte Karte einzeln identifizierbar - Voraussetzung fuer eine spaetere Tausch- oder Echtheitsfunktion",
+    "cost": "drei Kopien = drei Rueckseiten. Die Vorderseite und die teuren QA-Gates 3a-3c werden ueber front_fingerprint wiederverwendet.",
+    "irreversible": true
+  }
 }$json$::jsonb)
 on conflict (id) do update set definition = excluded.definition;
 
@@ -354,6 +377,38 @@ insert into photo_spec (version, rules, is_active) values
       "checked_by": [
         "PRECHECK",
         "GATE0"
+      ],
+      "note": "Die Bildgroesse allein entscheidet nichts - massgeblich ist die KOPFHOEHE in Pixeln (Regel head_height_px). 1200 x 1600 px sind der bequeme Richtwert, bei dem ein regelkonformer Ausschnitt die Kopfhoehe sicher erreicht."
+    },
+    {
+      "id": "head_height_px",
+      "metric": "Kopfhöhe im Quellbild in Pixeln",
+      "pass": ">= 392 px",
+      "class_b_from": "333 px",
+      "fail_below": "333 px",
+      "reason_code": "PHOTO_HEAD_TOO_FEW_PIXELS",
+      "message_de": "Der Kopf ist im Bild zu klein, um scharf gedruckt zu werden.",
+      "hint_de": "Geh näher ran, statt das Bild später zu vergrößern.",
+      "derived_from": "slot_schema TC-A: photo.box.h × anchors.head_height_ratio bei 300 dpi",
+      "note": "Die eigentliche Aufloesungsregel. Ein 4000-px-Foto mit winzigem Kopf ist unbrauchbar, ein knappes Foto mit formatfuellendem Kopf ist bestens. Gate 1 prueft die Folge nach der Ankerskalierung erneut.",
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
+    },
+    {
+      "id": "framing_margin_around_head",
+      "metric": "Bildbreite und Abstand ober-/unterhalb der Augenlinie, jeweils im Verhaeltnis zur Kopfhoehe",
+      "pass": "Breite >= 2.02 × Kopfhöhe · über den Augen >= 0.83 × · darunter >= 1.35 ×",
+      "reason_code": "PHOTO_TOO_TIGHT",
+      "message_de": "Es ist zu eng um den Kopf herum fotografiert.",
+      "hint_de": "Ein Schritt zurück — Schultern und etwas Luft über dem Kopf gehören mit ins Bild.",
+      "derived_from": "slot_schema TC-A: photo.box und photo.anchors",
+      "note": "Ohne diese Reserve muss der Renderer aufskalieren, damit kein Rand entsteht - dann wird der Kopf groesser als bei den Mitspielern und die Karte faellt aus dem Set. Bis 15 Prozent Abweichung ist das eine Warnung, darueber ein Fehler.",
+      "checked_by": [
+        "PRECHECK",
+        "GATE0",
+        "GATE1"
       ]
     },
     {
@@ -555,25 +610,28 @@ on conflict (version) do update set rules = excluded.rules, is_active = excluded
 -- Alle vier Templates auf demselben Slot-Schema: ein Renderer,
 -- ein QA-Regelsatz, ein Golden Set.
 insert into design_version (family_id, version, slot_schema_id, print_spec_id, assets)
-  values ('TC-FIELD', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
-  "slot_overrides": {}
+  values ('DESIGN-1', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
+  "slot_overrides": {},
+  "note": "Vorgesehen fuer Feldspieler. Name ist ein Platzhalter."
 }$json$::jsonb)
 on conflict (family_id, version) do update set assets = excluded.assets, print_spec_id = excluded.print_spec_id;
 
 insert into design_version (family_id, version, slot_schema_id, print_spec_id, assets)
-  values ('TC-KEEPER', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
-  "slot_overrides": {}
+  values ('DESIGN-2', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
+  "slot_overrides": {},
+  "note": "Vorgesehen fuer Torwart. Name ist ein Platzhalter."
 }$json$::jsonb)
 on conflict (family_id, version) do update set assets = excluded.assets, print_spec_id = excluded.print_spec_id;
 
 insert into design_version (family_id, version, slot_schema_id, print_spec_id, assets)
-  values ('TC-COACH-GOLD', '1.0.0', 'TC-A@1.0.0', 'PS-GOLD', $json${
-  "slot_overrides": {}
+  values ('DESIGN-3', '1.0.0', 'TC-A@1.0.0', 'PS-GOLD', $json${
+  "slot_overrides": {},
+  "note": "PLATZHALTER-ANNAHME: auf PS-GOLD gesetzt, damit der Pfad mit zwei Druckspezifikationen real durchlaufen wird. Auf PS-STD aendern, sobald feststeht, ob es eine Veredelung gibt."
 }$json$::jsonb)
 on conflict (family_id, version) do update set assets = excluded.assets, print_spec_id = excluded.print_spec_id;
 
 insert into design_version (family_id, version, slot_schema_id, print_spec_id, assets)
-  values ('TC-TEAM', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
+  values ('DESIGN-4', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
   "slot_overrides": {
     "photo": {
       "fit_mode": "COVER"
@@ -586,7 +644,7 @@ insert into design_version (family_id, version, slot_schema_id, print_spec_id, a
       "hidden": true
     }
   },
-  "note": "Die EINE bewusste Abweichung vom gemeinsamen Schema: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot. Alles andere bleibt identisch."
+  "note": "Vorgesehen als Mannschaftskarte und damit die EINE bewusste Abweichung: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot."
 }$json$::jsonb)
 on conflict (family_id, version) do update set assets = excluded.assets, print_spec_id = excluded.print_spec_id;
 

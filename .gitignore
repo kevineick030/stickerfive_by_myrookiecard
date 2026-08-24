@@ -1,0 +1,4 @@
+# Erzeugte Vorschauen (mit eingebetteten Schriften mehrere MB)
+out/
+__pycache__/
+*.pyc

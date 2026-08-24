@@ -3,20 +3,34 @@
   "status": "PLATZHALTER - Schwellwerte nach den ersten Betriebswochen aus echten Ablehnungsgruenden nachschaerfen",
   "applies_to_slot_schema": "TC-A@1.0.0",
   "note": "Eine Quelle, drei Ausspielungen: die Erklaerstrecke beim Partner, die Sofortpruefung im Upload-Dialog (Gate -1) und die verbindliche Eingangsvalidierung (Gate 0) werden alle hieraus abgeleitet. Ohne gemeinsame Quelle laufen sie garantiert auseinander.",
-
   "normalization": {
     "note": "Laeuft VOR jeder Pruefung. Zwei Fallen, die jedes Foto-Backend einmal treffen.",
     "steps": [
-      { "id": "heic_decode",   "reason": "iPhone-Standardformat, viele Bibliotheken lesen es nicht" },
-      { "id": "exif_rotate",   "reason": "nicht angewandte EXIF-Rotation laesst das Bild quer liegen; jede Landmark-Pruefung schlaegt fehl und meldet faelschlich 'kein Gesicht erkannt'" },
-      { "id": "strip_exif_pii", "reason": "GPS und Geraetedaten entfernen, bevor das Asset gespeichert wird" },
-      { "id": "to_srgb",       "reason": "einheitlicher Arbeitsfarbraum vor der Freistellung" }
+      {
+        "id": "heic_decode",
+        "reason": "iPhone-Standardformat, viele Bibliotheken lesen es nicht"
+      },
+      {
+        "id": "exif_rotate",
+        "reason": "nicht angewandte EXIF-Rotation laesst das Bild quer liegen; jede Landmark-Pruefung schlaegt fehl und meldet faelschlich 'kein Gesicht erkannt'"
+      },
+      {
+        "id": "strip_exif_pii",
+        "reason": "GPS und Geraetedaten entfernen, bevor das Asset gespeichert wird"
+      },
+      {
+        "id": "to_srgb",
+        "reason": "einheitlicher Arbeitsfarbraum vor der Freistellung"
+      }
     ]
   },
-
-  "accepted_formats": ["image/jpeg", "image/png", "image/heic", "image/heif"],
+  "accepted_formats": [
+    "image/jpeg",
+    "image/png",
+    "image/heic",
+    "image/heif"
+  ],
   "max_upload_bytes": 26214400,
-
   "rules": [
     {
       "id": "resolution",
@@ -27,7 +41,42 @@
       "reason_code": "PHOTO_TOO_SMALL",
       "message_de": "Das Bild ist zu klein für den Druck.",
       "hint_de": "Schick uns das Originalfoto statt einer verkleinerten Kopie aus einem Chat.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ],
+      "note": "Die Bildgroesse allein entscheidet nichts - massgeblich ist die KOPFHOEHE in Pixeln (Regel head_height_px). 1200 x 1600 px sind der bequeme Richtwert, bei dem ein regelkonformer Ausschnitt die Kopfhoehe sicher erreicht."
+    },
+    {
+      "id": "head_height_px",
+      "metric": "Kopfhöhe im Quellbild in Pixeln",
+      "pass": ">= 392 px",
+      "class_b_from": "333 px",
+      "fail_below": "333 px",
+      "reason_code": "PHOTO_HEAD_TOO_FEW_PIXELS",
+      "message_de": "Der Kopf ist im Bild zu klein, um scharf gedruckt zu werden.",
+      "hint_de": "Geh näher ran, statt das Bild später zu vergrößern.",
+      "derived_from": "slot_schema TC-A: photo.box.h × anchors.head_height_ratio bei 300 dpi",
+      "note": "Die eigentliche Aufloesungsregel. Ein 4000-px-Foto mit winzigem Kopf ist unbrauchbar, ein knappes Foto mit formatfuellendem Kopf ist bestens. Gate 1 prueft die Folge nach der Ankerskalierung erneut.",
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
+    },
+    {
+      "id": "framing_margin_around_head",
+      "metric": "Bildbreite und Abstand ober-/unterhalb der Augenlinie, jeweils im Verhaeltnis zur Kopfhoehe",
+      "pass": "Breite >= 2.02 × Kopfhöhe · über den Augen >= 0.83 × · darunter >= 1.35 ×",
+      "reason_code": "PHOTO_TOO_TIGHT",
+      "message_de": "Es ist zu eng um den Kopf herum fotografiert.",
+      "hint_de": "Ein Schritt zurück — Schultern und etwas Luft über dem Kopf gehören mit ins Bild.",
+      "derived_from": "slot_schema TC-A: photo.box und photo.anchors",
+      "note": "Ohne diese Reserve muss der Renderer aufskalieren, damit kein Rand entsteht - dann wird der Kopf groesser als bei den Mitspielern und die Karte faellt aus dem Set. Bis 15 Prozent Abweichung ist das eine Warnung, darueber ein Fehler.",
+      "checked_by": [
+        "PRECHECK",
+        "GATE0",
+        "GATE1"
+      ]
     },
     {
       "id": "effective_dpi_after_anchor",
@@ -38,7 +87,10 @@
       "message_de": "Nach dem Zuschnitt auf die Kartengröße reicht die Auflösung nicht.",
       "hint_de": "Geh näher ran, statt später hineinzuzoomen.",
       "note": "Der haeufigste STILLE Fehler bei Laienfotos: ein knappes Foto rutscht durch das Heranskalieren des Kopfes unter die Grenze. Wird in Gate 1 erneut am Manifest geprueft.",
-      "checked_by": ["GATE0", "GATE1"]
+      "checked_by": [
+        "GATE0",
+        "GATE1"
+      ]
     },
     {
       "id": "single_face",
@@ -47,7 +99,10 @@
       "reason_code": "PHOTO_FACE_COUNT",
       "message_de": "Auf dem Bild ist nicht genau eine Person zu sehen.",
       "hint_de": "Bitte ein Foto, auf dem nur der Spieler zu sehen ist.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
     },
     {
       "id": "head_height",
@@ -57,7 +112,10 @@
       "reason_code": "PHOTO_HEAD_SIZE",
       "message_de": "Der Kopf ist zu klein beziehungsweise zu groß im Bild.",
       "hint_de": "Oberkörperfoto: von der Kopfoberkante bis etwa zur Brustmitte.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
     },
     {
       "id": "eye_line_position",
@@ -66,7 +124,10 @@
       "reason_code": "PHOTO_FRAMING",
       "message_de": "Der Kopf sitzt zu weit oben oder zu weit unten.",
       "hint_de": "Augen etwa im oberen Drittel, Kopf mittig.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
     },
     {
       "id": "horizontal_centering",
@@ -76,7 +137,10 @@
       "reason_code": "PHOTO_OFF_CENTER",
       "message_de": "Der Spieler steht nicht mittig im Bild.",
       "hint_de": "Stell dich in die Mitte des Bildausschnitts.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
     },
     {
       "id": "shoulders_visible",
@@ -85,7 +149,10 @@
       "reason_code": "PHOTO_NO_SHOULDERS",
       "message_de": "Die Schultern sind nicht im Bild.",
       "hint_de": "Etwas weiter weg vom Handy - der Oberkörper gehört mit aufs Bild.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
     },
     {
       "id": "sharpness",
@@ -95,7 +162,10 @@
       "reason_code": "PHOTO_BLURRY",
       "message_de": "Das Bild ist unscharf.",
       "hint_de": "Halt das Handy still und tipp vorher aufs Gesicht, um scharf zu stellen.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
     },
     {
       "id": "exposure",
@@ -105,7 +175,10 @@
       "reason_code": "PHOTO_EXPOSURE",
       "message_de": "Das Gesicht ist zu hell oder zu dunkel.",
       "hint_de": "Nicht gegen die Sonne oder ein Fenster fotografieren - das Licht sollte von vorne kommen.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
     },
     {
       "id": "background_calmness",
@@ -116,7 +189,10 @@
       "message_de": "Der Hintergrund ist zu unruhig.",
       "hint_de": "Stell dich vor eine glatte Wand oder eine ruhige Fläche.",
       "note": "Der wichtigste Einzelwert fuer die Freistellungsquote.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
     },
     {
       "id": "subject_background_contrast",
@@ -125,7 +201,9 @@
       "reason_code": "PHOTO_LOW_CONTRAST_BG",
       "message_de": "Der Hintergrund hat fast dieselbe Farbe wie dein Trikot.",
       "hint_de": "Such dir eine Wand in einer anderen Farbe als dein Trikot.",
-      "checked_by": ["GATE0"]
+      "checked_by": [
+        "GATE0"
+      ]
     },
     {
       "id": "occlusion",
@@ -134,7 +212,9 @@
       "reason_code": "PHOTO_OCCLUSION",
       "message_de": "Etwas verdeckt das Gesicht.",
       "hint_de": "Mütze und Kapuze bitte ab, Sonnenbrille auch.",
-      "checked_by": ["GATE0"]
+      "checked_by": [
+        "GATE0"
+      ]
     },
     {
       "id": "pose",
@@ -144,7 +224,10 @@
       "reason_code": "PHOTO_POSE",
       "message_de": "Der Kopf ist zu stark gedreht oder geneigt.",
       "hint_de": "Schau frontal in die Kamera - so wie auf einem Sammelbild.",
-      "checked_by": ["PRECHECK", "GATE0"]
+      "checked_by": [
+        "PRECHECK",
+        "GATE0"
+      ]
     },
     {
       "id": "safe_area",
@@ -153,12 +236,17 @@
       "reason_code": "PHOTO_HEAD_CLIPPED",
       "message_de": "Der Kopf würde beim Beschnitt angeschnitten.",
       "hint_de": "Etwas mehr Platz über dem Kopf lassen.",
-      "checked_by": ["GATE0", "GATE1"]
+      "checked_by": [
+        "GATE0",
+        "GATE1"
+      ]
     }
   ],
-
   "classes": {
-    "A": { "rule": "alle Regeln im pass-Bereich", "handling": "geht ohne Zwischenschritt in die Freistellung" },
+    "A": {
+      "rule": "alle Regeln im pass-Bereich",
+      "handling": "geht ohne Zwischenschritt in die Freistellung"
+    },
     "B": {
       "rule": "keine Regel unterhalb ihrer fail-Schwelle, mindestens eine im class_b-Bereich",
       "handling": "automatische Aufbereitung: Aufhellung, Rauschminderung, moderates Upscaling, Farbangleichung an die Template-Farbwelt",
@@ -169,13 +257,17 @@
       "handling": "Blocker PHOTO_REJECTED mit reason_codes; Nachforderung ueber das Kommunikationsmodul"
     }
   },
-
   "explainer": {
     "form": "tonlose Schleifenanimation, 8-12 Sekunden, neben dem Upload-Feld",
     "rationale": "Ein Video wird weggeklickt. Eine Animation, die neben dem Upload-Feld laeuft, wird gesehen.",
     "must_work_on": "Mobiltelefon - dort wird der Upload stattfinden",
     "content": "Gegenueberstellung richtig/falsch mit den vier haeufigsten Fehlern",
-    "initial_four": ["background_calmness", "head_height", "exposure", "sharpness"],
+    "initial_four": [
+      "background_calmness",
+      "head_height",
+      "exposure",
+      "sharpness"
+    ],
     "review": "Nach vier Betriebswochen aus den tatsaechlichen reason_codes neu bestimmen."
   }
 }

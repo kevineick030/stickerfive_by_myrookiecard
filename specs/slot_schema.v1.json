@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "status": "PLATZHALTER - Masse und Feldauswahl vor dem ersten Druck bestaetigen",
   "note": "Alle vier Templates teilen dieses Schema. Es unterscheiden sich nur Grafik, Farbwelt und Druckspezifikation. Ergebnis: ein Renderer, ein QA-Regelsatz, ein Golden Set.",
-
   "geometry": {
     "unit": "mm",
     "origin": "oben links des Endformats (Trim). Negative Werte reichen in den Anschnitt.",
@@ -13,27 +12,46 @@
     "safe_margin": 4.0,
     "min_dpi": 300
   },
-
   "front": {
     "slots": [
       {
         "id": "photo",
         "type": "image",
-        "box": { "x": -2.0, "y": -2.0, "w": 67.0, "h": 72.0 },
+        "box": {
+          "x": -2.0,
+          "y": -2.0,
+          "w": 67.0,
+          "h": 72.0
+        },
         "fit_mode": "ANCHOR",
         "anchors": {
           "eye_line_ratio": 0.38,
           "head_height_ratio": 0.46,
-          "center_x_ratio": 0.50,
+          "center_x_ratio": 0.5,
           "tolerance_ratio": 0.02
         },
         "note": "Die Ankerregel ist der Grund, warum 60 unterschiedlich geschnittene Handyfotos wie ein Set aussehen. Der Renderer berechnet Skalierung und Versatz aus den Landmarks aus Schicht A.",
-        "required": true
+        "required": true,
+        "derived_requirements": {
+          "head_height_mm_on_card": 33.12,
+          "min_head_height_px": 392,
+          "note": "HERGELEITET aus box.h und head_height_ratio, nicht geschaetzt: damit der Kopf nach der Ankerskalierung noch 300 dpi hat, muss er im Quellbild mindestens 392 px hoch sein. tools/photo_requirements.py rechnet das aus dem Schema nach; Gate 1 prueft die Folge (LOW_EFFECTIVE_DPI).",
+          "min_image_width_per_head_height": 2.023,
+          "min_above_eye_per_head_height": 0.826,
+          "min_below_eye_per_head_height": 1.348,
+          "framing_note": "Damit das Bild den Slot ohne Aufskalieren deckt, muss um den Kopf herum genug Bild liegen: Breite >= 2.02 x Kopfhoehe, ueber der Augenlinie >= 0.83 x Kopfhoehe, darunter >= 1.35 x Kopfhoehe. Alles aus box und anchors hergeleitet, siehe tools/photo_requirements.py."
+        },
+        "coverage_scale_tolerance": 0.15
       },
       {
         "id": "club_logo",
         "type": "image",
-        "box": { "x": 4.0, "y": 4.0, "w": 12.0, "h": 12.0 },
+        "box": {
+          "x": 4.0,
+          "y": 4.0,
+          "w": 12.0,
+          "h": 12.0
+        },
         "fit_mode": "COVER",
         "source": "team_design_context.club_logo",
         "required": false
@@ -41,19 +59,37 @@
       {
         "id": "season",
         "type": "text",
-        "box": { "x": 43.0, "y": 4.5, "w": 16.0, "h": 4.0 },
+        "box": {
+          "x": 43.0,
+          "y": 4.5,
+          "w": 16.0,
+          "h": 4.0
+        },
         "source": "team.season",
-        "font": "display", "size_pt": 8.0, "min_size_pt": 7.0,
-        "align": "right", "transform": "none", "max_lines": 1,
+        "font": "display",
+        "size_pt": 8.0,
+        "min_size_pt": 7.0,
+        "align": "right",
+        "transform": "none",
+        "max_lines": 1,
         "required": true
       },
       {
         "id": "player_name",
         "type": "text",
-        "box": { "x": 4.0, "y": 71.0, "w": 42.0, "h": 8.0 },
+        "box": {
+          "x": 4.0,
+          "y": 70.0,
+          "w": 42.0,
+          "h": 7.5
+        },
         "source": "person.display_name",
-        "font": "display", "size_pt": 14.0, "min_size_pt": 8.5,
-        "align": "left", "transform": "uppercase", "max_lines": 2,
+        "font": "display",
+        "size_pt": 14.0,
+        "min_size_pt": 8.5,
+        "align": "left",
+        "transform": "uppercase",
+        "max_lines": 2,
         "qa_region": true,
         "note": "Prueffeld fuer Gate 3a. Autofit unter min_size_pt ist ein Gate-1-Fehler, kein stiller Fallback.",
         "required": true
@@ -61,113 +97,225 @@
       {
         "id": "jersey_number",
         "type": "text",
-        "box": { "x": 47.0, "y": 70.0, "w": 12.0, "h": 11.0 },
+        "box": {
+          "x": 47.0,
+          "y": 69.5,
+          "w": 12.0,
+          "h": 11.0
+        },
         "source": "person.jersey_number",
-        "font": "display", "size_pt": 22.0, "min_size_pt": 14.0,
-        "align": "right", "transform": "none", "max_lines": 1,
+        "font": "display",
+        "size_pt": 22.0,
+        "min_size_pt": 14.0,
+        "align": "right",
+        "transform": "none",
+        "max_lines": 1,
         "qa_region": true,
         "required": false
       },
       {
         "id": "position",
         "type": "text",
-        "box": { "x": 4.0, "y": 79.5, "w": 30.0, "h": 4.0 },
+        "box": {
+          "x": 4.0,
+          "y": 77.6,
+          "w": 30.0,
+          "h": 3.2
+        },
         "source": "person.role_label",
-        "font": "body", "size_pt": 7.5, "min_size_pt": 6.5,
-        "align": "left", "transform": "uppercase", "letter_spacing_em": 0.08, "max_lines": 1,
+        "font": "body",
+        "size_pt": 7.5,
+        "min_size_pt": 6.5,
+        "align": "left",
+        "transform": "uppercase",
+        "letter_spacing_em": 0.08,
+        "max_lines": 1,
         "required": true
       },
       {
         "id": "club_name",
         "type": "text",
-        "box": { "x": 4.0, "y": 83.5, "w": 42.0, "h": 4.0 },
+        "box": {
+          "x": 4.0,
+          "y": 80.8,
+          "w": 42.0,
+          "h": 3.2
+        },
         "source": "club.name",
-        "font": "body", "size_pt": 7.5, "min_size_pt": 6.0,
-        "align": "left", "transform": "none", "max_lines": 1,
+        "font": "body",
+        "size_pt": 7.5,
+        "min_size_pt": 6.0,
+        "align": "left",
+        "transform": "none",
+        "max_lines": 1,
         "qa_region": true,
         "required": true
       }
     ]
   },
-
   "back": {
     "slots": [
       {
         "id": "player_name_back",
         "type": "text",
-        "box": { "x": 4.0, "y": 8.0, "w": 55.0, "h": 7.0 },
+        "box": {
+          "x": 4.0,
+          "y": 8.0,
+          "w": 55.0,
+          "h": 7.0
+        },
         "source": "person.display_name",
-        "font": "display", "size_pt": 12.0, "min_size_pt": 8.0,
-        "align": "center", "transform": "uppercase", "max_lines": 2,
+        "font": "display",
+        "size_pt": 12.0,
+        "min_size_pt": 8.0,
+        "align": "center",
+        "transform": "uppercase",
+        "max_lines": 2,
         "qa_region": true,
         "required": true
       },
       {
         "id": "club_season_back",
         "type": "text",
-        "box": { "x": 4.0, "y": 16.0, "w": 55.0, "h": 4.5 },
+        "box": {
+          "x": 4.0,
+          "y": 16.0,
+          "w": 55.0,
+          "h": 4.5
+        },
         "source": "club.name + ' · ' + team.season",
-        "font": "body", "size_pt": 8.0, "min_size_pt": 6.5,
-        "align": "center", "max_lines": 1,
+        "font": "body",
+        "size_pt": 8.0,
+        "min_size_pt": 6.5,
+        "align": "center",
+        "max_lines": 1,
         "required": true
       },
       {
         "id": "stats_block",
         "type": "keyvalue",
-        "box": { "x": 8.0, "y": 24.0, "w": 47.0, "h": 16.0 },
+        "box": {
+          "x": 8.0,
+          "y": 24.0,
+          "w": 47.0,
+          "h": 16.0
+        },
         "source": "person.stats",
-        "font": "body", "size_pt": 7.0, "min_size_pt": 6.0,
+        "font": "body",
+        "size_pt": 7.0,
+        "min_size_pt": 6.0,
         "max_rows": 4,
         "required": false
       },
       {
         "id": "qr",
         "type": "qr",
-        "box": { "x": 21.5, "y": 42.0, "w": 20.0, "h": 20.0 },
+        "box": {
+          "x": 21.5,
+          "y": 42.0,
+          "w": 20.0,
+          "h": 20.0
+        },
         "payload_source": "card_twin.public_token",
         "url_pattern": "https://{resolver_host}/k/{token}",
         "error_correction": "Q",
-        "min_module_mm": 0.40,
+        "min_module_mm": 0.4,
         "quiet_zone_modules": 4,
-        "max_payload_bytes": 47,
+        "max_payload_bytes": 74,
         "forbid_finishing_overlay": true,
         "min_contrast_ratio": 7.0,
-        "note": "PAYLOAD-BUDGET: 47 Byte bei ECC Q und maximal 37 Modulen. 22 Zeichen Token plus Schema und Host duerfen das nicht ueberschreiten - der Resolver-Host muss also KURZ sein (z. B. 'k.mrc.cards' = 42 Byte gesamt). Ein langer Host erzwingt einen groesseren Code oder eine groessere Karte. Gate 1 prueft die Geometrie, Gate 3d liest den Code aus dem gerasterten PDF zurueck.",
+        "note": "PAYLOAD-BUDGET: 74 Byte. Hergeleitet aus der Boxgroesse, nicht geschaetzt - bei 20 mm Box, 4 Modulen Ruhezone und 0.40 mm Mindestmodul ist Version 6 (41 Module) die groesste noch sauber druckbare Version, und die traegt im Byte-Modus bei ECC Q 74 Byte. Der Token belegt 22, 'https://' und '/k/' weitere 11 - fuer den Host bleiben rund 40 Zeichen. Praktisch passt damit jeder realistische Domainname. Ein KURZER Host ist trotzdem besser: er senkt die QR-Version und vergroessert damit die Module (k.mrc.cards -> 0.49 mm, karte.myrookiecard.de -> 0.44 mm), was das Scannen einer zerkratzten Karte robuster macht. engine/layout.py:qr_plan rechnet das je Karte aus, Gate 1 prueft es.",
         "required": true
       },
       {
         "id": "qr_caption",
         "type": "text",
-        "box": { "x": 4.0, "y": 64.0, "w": 55.0, "h": 4.0 },
+        "box": {
+          "x": 4.0,
+          "y": 64.0,
+          "w": 55.0,
+          "h": 4.0
+        },
         "static_text_de": "Scanne den Code für deine digitale Karte",
-        "font": "body", "size_pt": 7.0, "min_size_pt": 6.0,
-        "align": "center", "max_lines": 1,
+        "font": "body",
+        "size_pt": 7.0,
+        "min_size_pt": 6.0,
+        "align": "center",
+        "max_lines": 1,
         "required": true
       },
       {
         "id": "legal_line",
         "type": "text",
-        "box": { "x": 4.0, "y": 79.0, "w": 55.0, "h": 6.0 },
+        "box": {
+          "x": 4.0,
+          "y": 77.8,
+          "w": 55.0,
+          "h": 5.6
+        },
         "source": "config.legal_line",
-        "font": "body", "size_pt": 5.0, "min_size_pt": 5.0,
-        "align": "center", "max_lines": 2,
+        "font": "body",
+        "size_pt": 5.0,
+        "min_size_pt": 5.0,
+        "align": "center",
+        "max_lines": 2,
         "required": true
       }
     ]
   },
-
   "families": [
-    { "id": "TC-FIELD",      "name": "Feldspieler",      "role": "FIELD",  "print_spec": "PS-STD",  "slot_overrides": {} },
-    { "id": "TC-KEEPER",     "name": "Torwart",          "role": "KEEPER", "print_spec": "PS-STD",  "slot_overrides": {} },
-    { "id": "TC-COACH-GOLD", "name": "Trainer · Gold",   "role": "COACH",  "print_spec": "PS-GOLD", "slot_overrides": {} },
     {
-      "id": "TC-TEAM", "name": "Mannschaftskarte", "role": null, "print_spec": "PS-STD",
+      "id": "DESIGN-1",
+      "name": "Design 1",
+      "role": "FIELD",
+      "print_spec": "PS-STD",
+      "token_per_copy": true,
+      "slot_overrides": {},
+      "note": "Vorgesehen fuer Feldspieler. Name ist ein Platzhalter."
+    },
+    {
+      "id": "DESIGN-2",
+      "name": "Design 2",
+      "role": "KEEPER",
+      "print_spec": "PS-STD",
+      "token_per_copy": true,
+      "slot_overrides": {},
+      "note": "Vorgesehen fuer Torwart. Name ist ein Platzhalter."
+    },
+    {
+      "id": "DESIGN-3",
+      "name": "Design 3",
+      "role": "COACH",
+      "print_spec": "PS-GOLD",
+      "token_per_copy": true,
+      "slot_overrides": {},
+      "note": "PLATZHALTER-ANNAHME: auf PS-GOLD gesetzt, damit der Pfad mit zwei Druckspezifikationen real durchlaufen wird. Auf PS-STD aendern, sobald feststeht, ob es eine Veredelung gibt."
+    },
+    {
+      "id": "DESIGN-4",
+      "name": "Design 4",
+      "role": null,
+      "print_spec": "PS-STD",
+      "token_per_copy": true,
       "slot_overrides": {
-        "photo":       { "fit_mode": "COVER" },
-        "player_name": { "source": "team.name" },
-        "jersey_number": { "required": false, "hidden": true }
+        "photo": {
+          "fit_mode": "COVER"
+        },
+        "player_name": {
+          "source": "team.name"
+        },
+        "jersey_number": {
+          "required": false,
+          "hidden": true
+        }
       },
-      "note": "Die EINE bewusste Abweichung vom gemeinsamen Schema: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot. Alles andere bleibt identisch."
+      "note": "Vorgesehen als Mannschaftskarte und damit die EINE bewusste Abweichung: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot."
     }
-  ]
+  ],
+  "token_policy": {
+    "decision": "ein QR-Token je physischer Kopie",
+    "rationale": "macht jede gedruckte Karte einzeln identifizierbar - Voraussetzung fuer eine spaetere Tausch- oder Echtheitsfunktion",
+    "cost": "drei Kopien = drei Rueckseiten. Die Vorderseite und die teuren QA-Gates 3a-3c werden ueber front_fingerprint wiederverwendet.",
+    "irreversible": true
+  }
 }

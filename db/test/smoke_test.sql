@@ -70,15 +70,15 @@ $$, 'Auftragsannahme ohne eingefrorenen Snapshot');
 insert into order_line (id, team_order_id, person_id, design_version_id, quantity, line_type, recipient_group_key, design_resolved_by)
 select '66666666-0000-0000-0000-000000000001','55555555-5555-5555-5555-555555555555',
        '44444444-0000-0000-0000-000000000001', dv.id, 3, 'BASE_PACK','meier','RULE'
-  from design_version dv where dv.family_id = 'TC-FIELD';
+  from design_version dv where dv.family_id = 'DESIGN-1';
 insert into order_line (id, team_order_id, person_id, design_version_id, quantity, line_type, recipient_group_key, design_resolved_by)
 select '66666666-0000-0000-0000-000000000002','55555555-5555-5555-5555-555555555555',
        '44444444-0000-0000-0000-000000000002', dv.id, 1, 'BASE_PACK','klein','RULE'
-  from design_version dv where dv.family_id = 'TC-KEEPER';
+  from design_version dv where dv.family_id = 'DESIGN-2';
 insert into order_line (id, team_order_id, person_id, design_version_id, quantity, line_type, recipient_group_key, design_resolved_by)
 select '66666666-0000-0000-0000-000000000003','55555555-5555-5555-5555-555555555555',
        '44444444-0000-0000-0000-000000000003', dv.id, 1, 'BASE_PACK','roth','RULE'
-  from design_version dv where dv.family_id = 'TC-COACH-GOLD';
+  from design_version dv where dv.family_id = 'DESIGN-3';
 
 select expand_order_line('66666666-0000-0000-0000-000000000001') as meier_karten,
        expand_order_line('66666666-0000-0000-0000-000000000002') as klein_karten,
@@ -89,17 +89,30 @@ select must_fail($$
   values ('66666666-0000-0000-0000-000000000002', 2)
 $$, 'copy_index ueber der bestellten Menge');
 
--- Kernbehauptung: 3 Kopien, EIN Token, EIN Rendering.
-select count(*) as meier_items, count(distinct card_twin_id) as meier_twins
+-- Kernbehauptung bei token_per_copy = true:
+-- drei Kopien -> drei eigene Token, also drei Artefakte.
+select count(*) as meier_items, count(distinct card_twin_id) as meier_token
   from card_item where order_line_id = '66666666-0000-0000-0000-000000000001';
 
 -- ------------------------------------------------------------ Rendering + QA
-insert into render_artifact (fingerprint, design_version_id, engine_version, pdf_ref, manifest)
-select repeat('a',64), dv.id, 'renderer-1.0.0', 's3://art/a.pdf', '{"slots":{}}'::jsonb
-  from design_version dv where dv.family_id = 'TC-FIELD';
+-- Je Kopie ein Artefakt, aber alle mit derselben Vorderseite: nur die
+-- Rueckseite unterscheidet sich (anderer QR-Token).
+insert into render_artifact (fingerprint, front_fingerprint, design_version_id, engine_version, pdf_ref, manifest)
+select md5('front-a'||ci.id::text) || md5('back-a'||ci.id::text),
+       repeat('a',64), dv.id, 'renderer-1.0.0', 's3://art/'||ci.id||'.pdf', '{"slots":{}}'::jsonb
+  from card_item ci
+  join order_line     ol on ol.id = ci.order_line_id
+  join design_version dv on dv.id = ol.design_version_id
+ where ci.order_line_id = '66666666-0000-0000-0000-000000000001';
 
-update card_item set artifact_fingerprint = repeat('a',64)
- where order_line_id = '66666666-0000-0000-0000-000000000001';
+update card_item ci
+   set artifact_fingerprint = md5('front-a'||ci.id::text) || md5('back-a'||ci.id::text)
+ where ci.order_line_id = '66666666-0000-0000-0000-000000000001';
+
+-- Die teure Vorderseite wird genau einmal gerendert.
+select count(*) as meier_artefakte, count(distinct ra.front_fingerprint) as gemeinsame_vorderseiten
+  from card_item ci join render_artifact ra on ra.fingerprint = ci.artifact_fingerprint
+ where ci.order_line_id = '66666666-0000-0000-0000-000000000001';
 
 -- Zustandsautomat: Spruenge sind nicht erlaubt.
 select must_fail($$
@@ -126,20 +139,21 @@ select must_fail($$
    where order_line_id = '66666666-0000-0000-0000-000000000001' and copy_index = 1
 $$, 'BATCHED ohne bestandene QA');
 
--- Verdikt mit FALSCHEM zurueckgelesenem QR-Token.
+-- Verdikte mit FALSCHEM zurueckgelesenem QR-Token.
 insert into qa_verdict (fingerprint, decision, confidence, qr_token_decoded)
-values (repeat('a',64), 'PASS', 0.991, 'FalscherToken1234567xy');
+select ci.artifact_fingerprint, 'PASS', 0.991, 'FalscherToken1234567xy'
+  from card_item ci where ci.order_line_id = '66666666-0000-0000-0000-000000000001';
 
 select must_fail($$
   update card_item set state = 'BATCHED', print_batch_id = '77777777-0000-0000-0000-00000000000a'
    where order_line_id = '66666666-0000-0000-0000-000000000001' and copy_index = 1
 $$, 'gedruckter QR-Token passt nicht zum Twin');
 
--- Korrekter Token aus Gate 3d.
-update qa_verdict q set qr_token_decoded = (
-  select tw.public_token from card_item ci join card_twin tw on tw.id = ci.card_twin_id
-   where ci.order_line_id = '66666666-0000-0000-0000-000000000001' limit 1)
- where q.fingerprint = repeat('a',64);
+-- Korrekte Token aus Gate 3d - je Kopie der ihre.
+update qa_verdict q set qr_token_decoded = tw.public_token
+  from card_item ci join card_twin tw on tw.id = ci.card_twin_id
+ where q.fingerprint = ci.artifact_fingerprint
+   and ci.order_line_id = '66666666-0000-0000-0000-000000000001';
 
 -- Offener HARD-Blocker haelt die Karte auf.
 insert into blocker (card_item_id, reason, detail)
@@ -158,9 +172,9 @@ select severity as consent_blocker_severity from blocker
 update blocker set resolved_at = now() where reason = 'CONSENT_REVOKED';
 
 -- Goldkarte darf nicht auf den Standardbogen.
-insert into render_artifact (fingerprint, design_version_id, engine_version, pdf_ref, manifest)
-select repeat('d',64), dv.id, 'renderer-1.0.0', 's3://art/d.pdf', '{}'::jsonb
-  from design_version dv where dv.family_id = 'TC-COACH-GOLD';
+insert into render_artifact (fingerprint, front_fingerprint, design_version_id, engine_version, pdf_ref, manifest)
+select repeat('d',64), repeat('e',64), dv.id, 'renderer-1.0.0', 's3://art/d.pdf', '{}'::jsonb
+  from design_version dv where dv.family_id = 'DESIGN-3';
 update card_item set artifact_fingerprint = repeat('d',64)
  where order_line_id = '66666666-0000-0000-0000-000000000003';
 insert into qa_verdict (fingerprint, decision, qr_token_decoded)

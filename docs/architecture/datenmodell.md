@@ -12,8 +12,13 @@ team_order          kaufmännische Klammer
 ```
 
 `expand_order_line(uuid)` erzeugt aus `quantity` die einzelnen `card_item`-Zeilen.
-Drei Karten desselben Spielers sind drei Items, aber **ein** `render_artifact` und
-**ein** `card_twin` — Rendering, QA und QR-Token laufen einmal.
+
+**Entschieden: ein QR-Token je physischer Kopie** (`design_family.token_per_copy = true`).
+Drei Karten desselben Spielers sind damit drei Items, drei `card_twin` und drei
+`render_artifact` — aber alle drei tragen denselben `front_fingerprint`. Sie unterscheiden
+sich nur auf der Rückseite. Foto, Freistellung, Komposition und die teuren QA-Gates 3a bis 3c
+laufen genau einmal je Vorderseite; je Kopie kommen nur die Rückseite und die QR-Rücklesung
+dazu. `create index render_artifact_front` findet die wiederverwendbare Vorderseite.
 
 Der Produktionsstatus einer Bestellung wird nicht gespeichert, sondern in
 `v_team_order_production_status` **abgeleitet**. Gespeichert ist nur der kommandierte
@@ -33,7 +38,8 @@ Der Token wird per Trigger (`card_item_mint_twin`) beim Anlegen des Items vergeb
 Karte, die verloren gehen kann.
 
 `design_family.token_per_copy` steuert, ob alle Kopien einer Zeile denselben Token tragen
-(Standard) oder jede physische Karte einen eigenen bekommt.
+oder jede physische Karte einen eigenen bekommt. Für alle vier Templates steht der Wert auf
+`true` — die Entscheidung wird gedruckt und ist danach nicht korrigierbar.
 
 ## Der Zustandsautomat ist Daten
 
@@ -81,7 +87,7 @@ Abgeleitete verworfen, ist nach Fristablauf kein Nachdruck mehr möglich.
 laufen Repository und Datenbank auseinander.
 
 Alle vier Templates teilen dasselbe Slot-Schema. Die einzige bewusste Abweichung ist
-`TC-TEAM`: Ein Gruppenfoto hat keine Kopf-Anker, also greift dort `fit_mode: COVER` auf
+`DESIGN-4`: Ein Gruppenfoto hat keine Kopf-Anker, also greift dort `fit_mode: COVER` auf
 demselben Slot.
 
 ## Prüfen
@@ -92,3 +98,24 @@ demselben Slot.
 
 Der Smoke-Test bestätigt 16 Verriegelungen, darunter jede Bedingung des
 `APPROVED → BATCHED`-Übergangs und die Unveränderlichkeitsregeln.
+
+## Die Layout-Engine
+
+`engine/layout.py` ist Schicht B: eine reine Funktion von Slot-Schema, Kartendaten und den
+Landmarks aus Schicht A auf das Render-Manifest. Kein Zufall, keine Uhrzeit, kein
+Modellaufruf — gleicher Input, gleiches Manifest, gleicher Fingerprint.
+
+Zwei Punkte, die aus der Umsetzung kamen und im Konzept so nicht standen:
+
+**Die Ankerregel braucht Reserve um den Kopf.** Deckt das Bild bei der Anker-Skalierung den
+Slot nicht ab, weil zu eng fotografiert wurde, skaliert die Engine hoch — der Kopf wird
+dadurch größer als das Zielmaß. Die Augenlinie bleibt exakt auf ihrem Anker, sonst zerfällt
+das Set. Bis 15 % Abweichung ist das eine Warnung, darüber ein Gate-1-Fehler. Die daraus
+folgenden Ausschnittsregeln (Bildbreite ≥ 2,02 × Kopfhöhe und so weiter) stehen in
+`photo_spec` und werden von `tools/photo_requirements.py` aus der Geometrie hergeleitet,
+nicht getippt.
+
+**Die Auflösungsregel hängt an der Kopfhöhe, nicht an der Bildgröße.** Ein 4000-px-Foto mit
+winzigem Kopf ist unbrauchbar, ein knappes Foto mit formatfüllendem Kopf ist bestens. Aus
+Bild-Slot und Ankerregel folgt eine Mindest-Kopfhöhe von 391 px im Quellbild; Gate 1 prüft
+die Folge nach der Skalierung erneut (`LOW_EFFECTIVE_DPI`).
