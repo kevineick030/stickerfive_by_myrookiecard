@@ -153,3 +153,28 @@ für selbst erzeugte Token (22 Zeichen Base58, keine verwechselbaren Zeichen); e
 muss lediglich URL-sicher und 12 bis 48 Zeichen lang sein. Ob er noch groß genug gedruckt
 werden kann, entscheidet die QR-Rechnung in Gate 1 — ein langer Token verkleinert die Module
 und fällt dort auf, nicht erst beim Scannen.
+
+## Der Auflösungsdienst
+
+`resolve_twin(token)` liefert entweder den Karteninhalt oder `{"status":"GONE"}` — und zwar
+dieselbe Antwort für **unbekannt, widerrufen und noch nicht gedruckt**. Sonst wäre der Dienst
+ein Orakel, mit dem sich prüfen ließe, welche Token existieren.
+
+Veröffentlicht wird beim Druck: der Trigger auf `card_item` setzt `published_at` und
+`published_fingerprint`, sobald eine Karte den Zustand `PRINTED` erreicht. Ein Nachdruck mit
+korrigiertem Inhalt aktualisiert nur den Fingerprint — der gedruckte Code funktioniert weiter.
+
+Gezählt wird in `twin_scan_daily`: Tagessummen je Karte, ohne IP, ohne Gerät, ohne Uhrzeit.
+Für „wie oft wird gescannt" reicht das, und es entsteht kein Bewegungsprofil von Kindern.
+
+Der Dienst selbst (`resolver/`) hat zwei Bremsen mit unterschiedlichem Zweck:
+
+- **Anfragen je Aufrufer** (60 pro Minute) — der eigentliche Schutz vor Überlast.
+- **Ein Kurzzeitgedächtnis für falsche Token** — wer denselben falschen Code hundertmal
+  abruft, kostet danach keine Datenbankabfrage mehr.
+
+Die zweite Bremse darf **niemals einen echten Scan blockieren**. Genau dieser Fehler steckte in
+der ersten Fassung: Eine IP, die zu oft danebengegriffen hatte, bekam anschließend auch mit
+einem gültigen Code nichts mehr. Bei 128 Bit Zufall im Token ist Durchprobieren ohnehin
+aussichtslos — die Bremse ist eine Kostenfrage, keine Sicherheitsmaßnahme, und wurde
+entsprechend umgebaut.

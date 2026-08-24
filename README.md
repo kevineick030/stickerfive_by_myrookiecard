@@ -14,7 +14,8 @@ verfügbare digitale Karte.
 | Slot-Schema, `photo_spec` | [`specs/`](specs) — v1, Maße und Schwellwerte sind Platzhalter |
 | Layout-Engine (Schicht B) + Gate 1 | [`engine/`](engine) — lauffähig, 24 Tests |
 | Partner-Vertrag + Anti-Corruption Layer | [`gateway/`](gateway), [`specs/`](specs) — lauffähig, 23 Tests |
-| Freistellung (Schicht A), QA-Worker, Auflösungsdienst, Cockpit | noch nicht begonnen |
+| Auflösungsdienst hinter dem QR-Code | [`resolver/`](resolver) — lauffähig, 21 Tests |
+| Freistellung (Schicht A), QA-Worker, Cockpit | noch nicht begonnen |
 
 ## Loslegen
 
@@ -65,11 +66,29 @@ Der Vertrag selbst ist [`specs/partner_payload.v1.schema.json`](specs/partner_pa
 Eine Nutzlast in einer nicht freigeschalteten Version wird **laut abgelehnt** statt still falsch
 übersetzt — der Unterschied zwischen einem Alarm und 60 falschen Karten.
 
+## Die ganze Kette einmal durchfahren
+
+```bash
+export PGDATABASE=tce
+./db/run.sh
+python3 tools/demo_flow.py        # Partnerdaten → gedruckte Karten, gibt die QR-Codes aus
+python3 tools/run_resolver.py     # danach: http://127.0.0.1:8088/k/<code>
+```
+
+`demo_flow.py` registriert den Partner, nimmt eine Teambestellung auf, friert sie ein, baut
+für jede Karte ein echtes Render-Manifest, lässt es durch Gate 1, setzt QA-Verdikte, bildet
+Druck-Batches nach Druckspezifikation, überträgt sie und markiert die Karten als gedruckt.
+Erst damit werden die digitalen Karten abrufbar.
+
+Der Auflösungsdienst ist bewusst winzig und kennt nur eine Frage: welcher Karteninhalt gehört
+zu diesem Token. Er soll noch laufen, wenn die Engine dreimal umgebaut wurde.
+
 ## Verzeichnisse
 
 ```
 engine/          Layout-Engine, Schriftmetriken, Gate 1, SVG-Vorschau
 gateway/         Vertragsprüfung und Anti-Corruption Layer
+resolver/        Auflösungsdienst hinter dem QR-Code
 db/migrations/   Schema, Zustandsautomat, Sichten
 db/seed/         Referenzdaten (0002 ist generiert — nicht von Hand ändern)
 db/test/         Smoke-Test der Verriegelungen
@@ -94,7 +113,11 @@ docs/            Architekturkonzept
 5. **Nichts verlässt das System zweimal.** Jeder ausgehende Vorgang läuft über die `outbox`
    mit fachlichem Schlüssel. Ein Netzwerk-Timeout beim Transfer kostet sonst einen zweiten
    Druckauftrag — und der kostet Papier.
-6. **Nach der Annahme ändert der Partner nichts mehr still.** Kommt eine Korrektur nach der
+6. **Der gedruckte Code zeigt auf uns, nie auf einen Speicherort.** Alles, was sich ändern
+   können muss — welcher Inhalt kommt, ob überhaupt etwas kommt, wo die Datei liegt — liegt
+   hinter dem Token. Unbekannt, widerrufen und noch nicht gedruckt liefern dieselbe Antwort,
+   damit der Dienst kein Auskunftsmittel über die Existenz von Karten wird.
+7. **Nach der Annahme ändert der Partner nichts mehr still.** Kommt eine Korrektur nach der
    Auftragsannahme, entsteht ein Änderungsantrag im Cockpit statt einer stillen Korrektur.
    Sonst weicht das Gedruckte vom Freigegebenen ab.
 
