@@ -18,11 +18,13 @@ FONTS = {
     "display": load_font("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
     "body": load_font("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
 }
-PHOTO_OK = PhotoAsset("a" * 64, 1800, 2400, Landmarks(887, 500, 1360, 900))
+# Ein regelkonformes Handyfoto: Kopf 860 px hoch, ringsum genug Bild fuer das
+# nahezu quadratische Fotofenster der Prizm-Vorlage (Breite >= 2,22 x Kopfhoehe).
+PHOTO_OK = PhotoAsset("a" * 64, 2000, 2400, Landmarks(887, 500, 1360, 1000))
 
 
 def make_card(**kw) -> CardData:
-    base = dict(card_item_id="t-1", copy_index=1, player_name="Lukas Meier",
+    base = dict(card_item_id="t-1", copy_index=1, copies_total=3, player_name="Lukas Meier",
                 club_name="TSV Musterstadt", season="25/26", position_label="Feldspieler",
                 jersey_number="7", team_name="D-Jugend",
                 public_token="Demo1Tokenzzzzzzzzzzzz", resolver_host="k.mrc.cards",
@@ -49,9 +51,9 @@ class TestAnkerregel(unittest.TestCase):
     def test_augenlinie_trifft_anker_unabhaengig_vom_ausschnitt(self):
         anchors = next(s for s in SCHEMA["front"]["slots"] if s["id"] == "photo")["anchors"]
         varianten = [
-            PhotoAsset("a" * 64, 1800, 2400, Landmarks(887, 500, 1360, 900)),
-            PhotoAsset("b" * 64, 1600, 2000, Landmarks(742, 400, 1160, 800)),
-            PhotoAsset("c" * 64, 2000, 2600, Landmarks(1023, 600, 1540, 1000)),
+            PhotoAsset("a" * 64, 2000, 2400, Landmarks(887, 500, 1360, 1000)),
+            PhotoAsset("b" * 64, 1800, 2000, Landmarks(742, 400, 1160, 900)),
+            PhotoAsset("c" * 64, 2400, 2600, Landmarks(1023, 600, 1540, 1200)),
         ]
         for p in varianten:
             with self.subTest(px=(p.width_px, p.height_px)):
@@ -87,7 +89,7 @@ class TestTextsatz(unittest.TestCase):
         self.assertEqual(p["size_pt"], p["declared_size_pt"])
 
     def test_langer_name_wird_verkleinert_statt_abgeschnitten(self):
-        p = slot_of(manifest(make_card(player_name="Đorđe Đorđević")), "front", "player_name")
+        p = slot_of(manifest(make_card(player_name="Đorđe Đorđević-Petrović")), "front", "player_name")
         self.assertTrue(p["autofit_applied"])
         self.assertLess(p["size_pt"], p["declared_size_pt"])
         self.assertGreaterEqual(p["size_pt"], p["min_size_pt"])
@@ -100,7 +102,7 @@ class TestTextsatz(unittest.TestCase):
         self.assertTrue(any(f.code == "TEXT_OVERFLOW" for f in check(manifest(card))))
 
     def test_diakritika_werden_als_vorhanden_erkannt(self):
-        p = slot_of(manifest(make_card(player_name="Đorđe Đorđević")), "front", "player_name")
+        p = slot_of(manifest(make_card(player_name="Đorđe Đorđević-Petrović")), "front", "player_name")
         self.assertEqual(p["missing_glyphs"], [])
 
     def test_fehlende_glyphe_faellt_auf(self):
@@ -168,7 +170,8 @@ class TestGate1(unittest.TestCase):
         self.assertTrue(passed(check(manifest())))
 
     def test_knappes_foto_faellt_wegen_aufloesung_durch(self):
-        knapp = PhotoAsset("d" * 64, 720, 960, Landmarks(373, 200, 584, 360))
+        # Kopf nur 200 px hoch - unter den 283 px, die 300 dpi im Fotofenster verlangen.
+        knapp = PhotoAsset("d" * 64, 480, 640, Landmarks(213, 120, 320, 240))
         findings = check(manifest(photo=knapp))
         self.assertFalse(passed(findings))
         self.assertTrue(any(f.code == "LOW_EFFECTIVE_DPI" for f in findings))

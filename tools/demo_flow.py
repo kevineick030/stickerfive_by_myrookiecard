@@ -114,6 +114,7 @@ def main() -> int:
                            LANDMARKS.get(row["ref"]))
         card = CardData(
             card_item_id=row["card_item"], copy_index=row["copy"],
+            copies_total=row.get("quantity") or 1,
             player_name=row["player"], club_name=row["club"], season=row["season"],
             position_label={"FIELD": "Feldspieler", "KEEPER": "Torwart",
                             "COACH": "Trainer", "STAFF": "Betreuer"}[row["role"]],

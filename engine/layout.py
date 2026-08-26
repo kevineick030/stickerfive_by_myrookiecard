@@ -50,6 +50,7 @@ class PhotoAsset:
 class CardData:
     card_item_id: str
     copy_index: int
+    copies_total: int
     player_name: str
     club_name: str
     season: str
@@ -310,6 +311,9 @@ def build_manifest(schema: dict, family: dict, card: CardData,
         "team.name": card.team_name or card.club_name,
         "club.name + ' · ' + team.season": f"{card.club_name} · {card.season}",
         "config.legal_line": card.legal_line,
+        # Auf der Karte steht "01/03": diese Kopie von so vielen. Die Zahl gehoert
+        # zum Stueck, nicht zum Spieler - deshalb kommt sie aus card, nicht person.
+        "card.copy_index_of_total": f"{card.copy_index:02d}/{card.copies_total:02d}",
     }
 
     def place_side(side: str) -> list[dict]:
@@ -401,6 +405,7 @@ def build_manifest(schema: dict, family: dict, card: CardData,
         "card": {
             "card_item_id": card.card_item_id,
             "copy_index": card.copy_index,
+            "copies_total": card.copies_total,
             "design_family": family["id"],
             "design_version": design_version,
             "slot_schema": f'{schema["id"]}@{schema["version"]}',

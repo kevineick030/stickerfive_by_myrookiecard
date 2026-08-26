@@ -35,9 +35,9 @@
     {
       "id": "resolution",
       "metric": "min(width_px, height_px * 0.75)",
-      "pass": ">= 1200 x 1600 px",
-      "class_b_from": "900 x 1200 px",
-      "fail_below": "900 x 1200 px",
+      "pass": ">= 900 x 1200 px",
+      "class_b_from": "700 x 900 px",
+      "fail_below": "700 x 900 px",
       "reason_code": "PHOTO_TOO_SMALL",
       "message_de": "Das Bild ist zu klein für den Druck.",
       "hint_de": "Schick uns das Originalfoto statt einer verkleinerten Kopie aus einem Chat.",
@@ -45,14 +45,14 @@
         "PRECHECK",
         "GATE0"
       ],
-      "note": "Die Bildgroesse allein entscheidet nichts - massgeblich ist die KOPFHOEHE in Pixeln (Regel head_height_px). 1200 x 1600 px sind der bequeme Richtwert, bei dem ein regelkonformer Ausschnitt die Kopfhoehe sicher erreicht."
+      "note": "Die Bildgroesse allein entscheidet nichts - massgeblich ist die KOPFHOEHE in Pixeln (Regel head_height_px). 900 x 1200 px sind der bequeme Richtwert, bei dem ein regelkonformer Ausschnitt die Kopfhoehe sicher erreicht."
     },
     {
       "id": "head_height_px",
       "metric": "Kopfhöhe im Quellbild in Pixeln",
-      "pass": ">= 392 px",
-      "class_b_from": "333 px",
-      "fail_below": "333 px",
+      "pass": ">= 283 px",
+      "class_b_from": "241 px",
+      "fail_below": "241 px",
       "reason_code": "PHOTO_HEAD_TOO_FEW_PIXELS",
       "message_de": "Der Kopf ist im Bild zu klein, um scharf gedruckt zu werden.",
       "hint_de": "Geh näher ran, statt das Bild später zu vergrößern.",

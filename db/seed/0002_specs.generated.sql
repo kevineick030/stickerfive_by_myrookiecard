@@ -8,7 +8,7 @@ insert into slot_schema (id, version, definition) values
   ('TC-A@1.0.0', '1.0.0', $json${
   "id": "TC-A",
   "version": "1.0.0",
-  "status": "PLATZHALTER - Masse und Feldauswahl vor dem ersten Druck bestaetigen",
+  "status": "Geometrie an der echten leeren Vorlage 'Schwarz Prizm' gemessen (2026-08-26). Alle vier Prizm-Designs teilen dieses Raster; Abweichungen gehoeren in slot_overrides.",
   "note": "Alle vier Templates teilen dieses Schema. Es unterscheiden sich nur Grafik, Farbwelt und Druckspezifikation. Ergebnis: ein Renderer, ein QA-Regelsatz, ein Golden Set.",
   "geometry": {
     "unit": "mm",
@@ -25,10 +25,10 @@ insert into slot_schema (id, version, definition) values
         "id": "photo",
         "type": "image",
         "box": {
-          "x": -2.0,
-          "y": -2.0,
-          "w": 67.0,
-          "h": 72.0
+          "x": 5.0,
+          "y": 13.0,
+          "w": 53.0,
+          "h": 52.0
         },
         "fit_mode": "ANCHOR",
         "anchors": {
@@ -40,13 +40,13 @@ insert into slot_schema (id, version, definition) values
         "note": "Die Ankerregel ist der Grund, warum 60 unterschiedlich geschnittene Handyfotos wie ein Set aussehen. Der Renderer berechnet Skalierung und Versatz aus den Landmarks aus Schicht A.",
         "required": true,
         "derived_requirements": {
-          "head_height_mm_on_card": 33.12,
-          "min_head_height_px": 392,
-          "note": "HERGELEITET aus box.h und head_height_ratio, nicht geschaetzt: damit der Kopf nach der Ankerskalierung noch 300 dpi hat, muss er im Quellbild mindestens 392 px hoch sein. tools/photo_requirements.py rechnet das aus dem Schema nach; Gate 1 prueft die Folge (LOW_EFFECTIVE_DPI).",
-          "min_image_width_per_head_height": 2.023,
+          "head_height_mm_on_card": 23.92,
+          "min_head_height_px": 283,
+          "note": "HERGELEITET aus box.h und head_height_ratio, nicht geschaetzt: damit der Kopf nach der Ankerskalierung noch 300 dpi hat, muss er im Quellbild mindestens 283 px hoch sein. tools/photo_requirements.py rechnet das aus dem Schema nach; Gate 1 prueft die Folge (LOW_EFFECTIVE_DPI).",
+          "min_image_width_per_head_height": 2.216,
           "min_above_eye_per_head_height": 0.826,
           "min_below_eye_per_head_height": 1.348,
-          "framing_note": "Damit das Bild den Slot ohne Aufskalieren deckt, muss um den Kopf herum genug Bild liegen: Breite >= 2.02 x Kopfhoehe, ueber der Augenlinie >= 0.83 x Kopfhoehe, darunter >= 1.35 x Kopfhoehe. Alles aus box und anchors hergeleitet, siehe tools/photo_requirements.py."
+          "framing_note": "Damit das Bild den Slot ohne Aufskalieren deckt, muss um den Kopf herum genug Bild liegen: Breite >= 2.22 x Kopfhoehe, ueber der Augenlinie >= 0.83 x Kopfhoehe, darunter >= 1.35 x Kopfhoehe. Alles aus box und anchors hergeleitet, siehe tools/photo_requirements.py."
         },
         "coverage_scale_tolerance": 0.15
       },
@@ -61,7 +61,9 @@ insert into slot_schema (id, version, definition) values
         },
         "fit_mode": "COVER",
         "source": "team_design_context.club_logo",
-        "required": false
+        "required": false,
+        "hidden": true,
+        "note": "In den vier Prizm-Vorlagen nicht vorgesehen - dort stehen nur Name, Verein, Trikotnummer, Unterschrift und Auflage. Bleibt fuer spaetere Designs erhalten und wird ueber slot_overrides wieder eingeblendet."
       },
       {
         "id": "season",
@@ -79,41 +81,43 @@ insert into slot_schema (id, version, definition) values
         "align": "right",
         "transform": "none",
         "max_lines": 1,
-        "required": true
+        "required": false,
+        "hidden": true,
+        "note": "In den vier Prizm-Vorlagen nicht vorgesehen - dort stehen nur Name, Verein, Trikotnummer, Unterschrift und Auflage. Bleibt fuer spaetere Designs erhalten und wird ueber slot_overrides wieder eingeblendet."
       },
       {
         "id": "player_name",
         "type": "text",
         "box": {
-          "x": 4.0,
-          "y": 70.0,
-          "w": 42.0,
-          "h": 7.5
+          "x": 9.6,
+          "y": 4.0,
+          "w": 47.0,
+          "h": 4.6
         },
         "source": "person.display_name",
         "font": "display",
-        "size_pt": 14.0,
-        "min_size_pt": 8.5,
-        "align": "left",
+        "size_pt": 11.0,
+        "min_size_pt": 8.0,
+        "align": "center",
         "transform": "uppercase",
-        "max_lines": 2,
+        "max_lines": 1,
         "qa_region": true,
-        "note": "Prueffeld fuer Gate 3a. Autofit unter min_size_pt ist ein Gate-1-Fehler, kein stiller Fallback.",
+        "note": "Das schwarze Namensband der Vorlage reicht von 2,3 bis 8,6 mm. Der TEXT sitzt bewusst nur in dessen unterer Haelfte: ab 4 mm beginnt die Sicherheitszone, und Schrift darf beim Schneiden nicht angeschnitten werden. Grafik darf das, Text nicht. Prueffeld fuer Gate 3a; Autofit unter min_size_pt ist ein Gate-1-Fehler.",
         "required": true
       },
       {
         "id": "jersey_number",
         "type": "text",
         "box": {
-          "x": 47.0,
-          "y": 69.5,
+          "x": 46.0,
+          "y": 13.5,
           "w": 12.0,
-          "h": 11.0
+          "h": 10.0
         },
         "source": "person.jersey_number",
         "font": "display",
-        "size_pt": 22.0,
-        "min_size_pt": 14.0,
+        "size_pt": 24.0,
+        "min_size_pt": 15.0,
         "align": "right",
         "transform": "none",
         "max_lines": 1,
@@ -137,26 +141,62 @@ insert into slot_schema (id, version, definition) values
         "transform": "uppercase",
         "letter_spacing_em": 0.08,
         "max_lines": 1,
-        "required": true
+        "required": false,
+        "hidden": true,
+        "note": "In den vier Prizm-Vorlagen nicht vorgesehen - dort stehen nur Name, Verein, Trikotnummer, Unterschrift und Auflage. Bleibt fuer spaetere Designs erhalten und wird ueber slot_overrides wieder eingeblendet."
       },
       {
         "id": "club_name",
         "type": "text",
         "box": {
-          "x": 4.0,
-          "y": 80.8,
-          "w": 42.0,
-          "h": 3.2
+          "x": 9.6,
+          "y": 9.0,
+          "w": 47.0,
+          "h": 3.1
         },
         "source": "club.name",
         "font": "body",
-        "size_pt": 7.5,
-        "min_size_pt": 6.0,
-        "align": "left",
+        "size_pt": 7.0,
+        "min_size_pt": 5.5,
+        "align": "center",
         "transform": "none",
         "max_lines": 1,
         "qa_region": true,
         "required": true
+      },
+      {
+        "id": "signature",
+        "type": "image",
+        "box": {
+          "x": 11.7,
+          "y": 69.5,
+          "w": 48.3,
+          "h": 8.4
+        },
+        "source": "person.signature",
+        "fit_mode": "CONTAIN",
+        "required": false,
+        "note": "Weisses Feld der Vorlage unter 'AUTHENTIC SIGNATURE'. Drei Wege fuer die Familie: unterschreiben, Bild hochladen, tippen. Fehlt sie, bleibt das Feld leer - das ist kein Fehler."
+      },
+      {
+        "id": "serial",
+        "type": "text",
+        "box": {
+          "x": 21.5,
+          "y": 81.0,
+          "w": 20.0,
+          "h": 3.0
+        },
+        "source": "card.copy_index_of_total",
+        "font": "display",
+        "size_pt": 7.0,
+        "min_size_pt": 6.0,
+        "align": "center",
+        "transform": "none",
+        "max_lines": 1,
+        "qa_region": true,
+        "required": true,
+        "note": "Auflagennummer, in der Vorlage als '01/01' vorgezeichnet. Gate 3a liest sie zurueck."
       }
     ]
   },
@@ -368,9 +408,9 @@ insert into photo_spec (version, rules, is_active) values
     {
       "id": "resolution",
       "metric": "min(width_px, height_px * 0.75)",
-      "pass": ">= 1200 x 1600 px",
-      "class_b_from": "900 x 1200 px",
-      "fail_below": "900 x 1200 px",
+      "pass": ">= 900 x 1200 px",
+      "class_b_from": "700 x 900 px",
+      "fail_below": "700 x 900 px",
       "reason_code": "PHOTO_TOO_SMALL",
       "message_de": "Das Bild ist zu klein für den Druck.",
       "hint_de": "Schick uns das Originalfoto statt einer verkleinerten Kopie aus einem Chat.",
@@ -378,14 +418,14 @@ insert into photo_spec (version, rules, is_active) values
         "PRECHECK",
         "GATE0"
       ],
-      "note": "Die Bildgroesse allein entscheidet nichts - massgeblich ist die KOPFHOEHE in Pixeln (Regel head_height_px). 1200 x 1600 px sind der bequeme Richtwert, bei dem ein regelkonformer Ausschnitt die Kopfhoehe sicher erreicht."
+      "note": "Die Bildgroesse allein entscheidet nichts - massgeblich ist die KOPFHOEHE in Pixeln (Regel head_height_px). 900 x 1200 px sind der bequeme Richtwert, bei dem ein regelkonformer Ausschnitt die Kopfhoehe sicher erreicht."
     },
     {
       "id": "head_height_px",
       "metric": "Kopfhöhe im Quellbild in Pixeln",
-      "pass": ">= 392 px",
-      "class_b_from": "333 px",
-      "fail_below": "333 px",
+      "pass": ">= 283 px",
+      "class_b_from": "241 px",
+      "fail_below": "241 px",
       "reason_code": "PHOTO_HEAD_TOO_FEW_PIXELS",
       "message_de": "Der Kopf ist im Bild zu klein, um scharf gedruckt zu werden.",
       "hint_de": "Geh näher ran, statt das Bild später zu vergrößern.",

@@ -81,7 +81,7 @@ def main() -> int:
     for i, case in enumerate(CASES):
         fam = families[case["family"]]
         card = CardData(
-            card_item_id=f"demo-{i+1}", copy_index=1,
+            card_item_id=f"demo-{i+1}", copy_index=1, copies_total=3,
             player_name=case["name"], club_name="TSV Musterstadt", season="25/26",
             position_label=case["pos"], jersey_number=case["nr"],
             team_name="D-Jugend", stats=case["stats"],
