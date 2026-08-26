@@ -26,13 +26,15 @@ SCHEMA = json.loads((ROOT / "specs" / "slot_schema.v1.json").read_text(encoding=
 FAMILIES = {f["id"]: f for f in SCHEMA["families"]}
 GEO = SCHEMA["geometry"]
 
-# PLATZHALTER: Anton und Oswald stehen fuer die echte Hausschrift der Karten.
+# Die Hausschriften: Montserrat fuer Namen und Zahlen, Poppins fuer die
+# Zeilen darunter. Beide sind deutlich breiter als der frueher benutzte
+# Notbehelf - die Groessen sind daran neu ausgerichtet.
 # Eine Systemschrift wie DejaVu ist zu breit und zu weich - Namen mussten
 # verkleinert werden und wirkten dadurch beliebig. Sobald die Originalschrift
 # vorliegt, wird hier nur der Pfad getauscht; alle Groessen bleiben gueltig,
 # weil die Engine mit echten Schriftmetriken rechnet.
-TTF = {"display": str(ROOT / "assets" / "fonts" / "anton.ttf"),
-       "body": str(ROOT / "assets" / "fonts" / "oswald.ttf")}
+TTF = {"display": str(ROOT / "assets" / "fonts" / "montserrat-extrabold.ttf"),
+       "body": str(ROOT / "assets" / "fonts" / "poppins-semibold.ttf")}
 FONTS = {k: load_font(v) for k, v in TTF.items()}
 
 # Vorlagendatei und Textfarben je Design. Die Geometrie steht im Schema,
@@ -193,9 +195,37 @@ def compose(family_id: str, card: CardData, cut_png: pathlib.Path, lm: dict,
     return karte, befunde
 
 
+def plan(family_id, card, cut_png, lm, dpi=300):
+    """Alles, was der Browser-Renderer braucht - ohne selbst zu zeichnen."""
+    family = FAMILIES[family_id]
+    tpl_name, farben = DESIGNS[family_id]
+    cut = Image.open(cut_png)
+    photo = PhotoAsset("sha-" + cut_png.stem, cut.width, cut.height,
+                       Landmarks(lm["eye_line_y"], lm["head_top_y"],
+                                 lm["chin_y"], lm["center_x"]),
+                       cutout=True, subject_bottom_y=lm.get("subject_bottom_y"))
+    manifest = build_manifest(SCHEMA, family, card, photo, FONTS, "1.0.0")
+    return {
+        "id": f"{family_id}-{cut_png.stem[:16]}",
+        "design": family_id, "designName": family["name"],
+        "gesperrt": bool(family.get("blocker")),
+        "dpi": dpi, "trim": [SCHEMA["geometry"]["trim_width"], SCHEMA["geometry"]["trim_height"]],
+        "vorlage": str((ROOT / "assets" / "templates" / tpl_name).resolve()),
+        "spieler": str(cut_png.resolve()),
+        "schriften": {k: str(pathlib.Path(v).resolve()) for k, v in TTF.items()},
+        "farben": {k: (list(v) if not isinstance(v, str) else v) for k, v in farben.items()},
+        "overlays": family.get("overlays", SCHEMA["front"].get("overlays", [])),
+        "patches": family.get("patches", SCHEMA["front"].get("patches", [])),
+        "placements": manifest["front"]["placements"],
+        "befunde": [str(f) for f in check(manifest)],
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--alle", action="store_true")
+    ap.add_argument("--plan", action="store_true",
+                    help="Renderplaene als JSON schreiben statt selbst zu rastern")
     ap.add_argument("--dpi", type=int, default=300)
     ap.add_argument("--out", default="out/karten")
     a = ap.parse_args()
@@ -225,6 +255,12 @@ def main() -> int:
                         resolver_host="k.mrc.cards",
                         legal_line=f"© {verein}")
         png = frei / (pathlib.Path(eintrag["quelle"]).stem + ".png")
+        if a.plan:
+            pl = plan(fam, card, png, eintrag["landmarks"], a.dpi)
+            (ziel / (pl["id"] + ".json")).write_text(
+                json.dumps(pl, indent=1, ensure_ascii=False), encoding="utf-8")
+            print(f'{pl["id"]}.json  {len(pl["befunde"])} Befund(e)')
+            continue
         karte, befunde = compose(fam, card, png, eintrag["landmarks"], a.dpi)
         datei = ziel / f"{fam}-{pathlib.Path(eintrag['quelle']).stem[:16]}.png"
         karte.save(datei)
