@@ -44,6 +44,10 @@ class PhotoAsset:
     width_px: int
     height_px: int
     landmarks: Landmarks | None = None      # None bei Gruppenfotos (fit_mode COVER)
+    # Freigestellt heisst: den Hintergrund liefert die Vorlage, nicht das Foto.
+    # Dann gibt es nichts zu decken - die Deckungsregel darf nicht greifen.
+    cutout: bool = False
+    subject_bottom_y: float | None = None   # unterster gedeckter Punkt der Silhouette
 
 
 @dataclass
@@ -183,11 +187,18 @@ def _place_photo_anchor(slot: dict, photo: PhotoAsset) -> dict:
     Der Grund, warum 60 unterschiedlich geschnittene Handyfotos wie ein Set
     aussehen und nicht wie 60 Zufaelle.
 
-    Deckt das Bild bei der Anker-Skalierung den Slot nicht ab - weil zu eng
-    um den Kopf herum fotografiert wurde -, wird so weit aufskaliert, dass es
-    deckt. Der Kopf wird dadurch etwas groesser als das Ziel; wie weit das
-    gehen darf, steht als coverage_scale_tolerance im Slot. Die Augenlinie
-    bleibt in jedem Fall exakt auf ihrem Anker, damit das Set zusammenhaelt.
+    Bei einem VOLLBILD deckt das Foto den Slot. Reicht die Anker-Skalierung
+    dafuer nicht - weil zu eng um den Kopf fotografiert wurde -, wird so weit
+    aufskaliert, dass es deckt; wie weit das gehen darf, steht als
+    coverage_scale_tolerance im Slot.
+
+    Bei einem FREISTELLER entfaellt das: den Hintergrund liefert die Vorlage,
+    es gibt nichts zu decken. Dort gilt die Ankerskalierung unveraendert, und
+    die verbleibende Formatfrage ist, ob der Oberkoerper bis zur Unterkante
+    des Fensters reicht.
+
+    Die Augenlinie bleibt in beiden Faellen exakt auf ihrem Anker, damit das
+    Set zusammenhaelt.
     """
     lm = photo.landmarks
     if lm is None:
@@ -199,8 +210,15 @@ def _place_photo_anchor(slot: dict, photo: PhotoAsset) -> dict:
     tolerance = float(slot.get("coverage_scale_tolerance", 0.15))
 
     scale_anchor = (anchors["head_height_ratio"] * box["h"]) / lm.head_height
-    scale_needed = coverage_scale(slot, photo)
-    adjusted = scale_needed > scale_anchor * (1 + 1e-9)
+    if photo.cutout:
+        # Ein Freisteller hat keinen Hintergrund, den er beitragen koennte -
+        # den liefert die Vorlage. Aufskalieren, damit das Bild den Slot
+        # "deckt", waere sinnlos und macht nur den Kopf zu gross. Was
+        # stattdessen zaehlt, prueft Gate 1 als SUBJECT_FLOATS.
+        scale_needed, adjusted = scale_anchor, False
+    else:
+        scale_needed = coverage_scale(slot, photo)
+        adjusted = scale_needed > scale_anchor * (1 + 1e-9)
     scale = max(scale_anchor, scale_needed)
 
     dx = box["x"] + anchors["center_x_ratio"] * box["w"] - lm.center_x * scale
@@ -225,6 +243,13 @@ def _place_photo_anchor(slot: dict, photo: PhotoAsset) -> dict:
         # Skalieren nach unten erhoeht die effektive Aufloesung, nach oben senkt sie sie.
         "effective_dpi": _round(25.4 / scale, 1),
         "covers_slot": True,
+        "cutout": photo.cutout,
+        # Bei einem Freisteller die einzige Formatfrage, die bleibt: reicht der
+        # Oberkoerper bis zur Unterkante des Fensters? Sonst schwebt der
+        # Spieler ueber der Karte, statt darin zu stehen.
+        "subject_bottom_mm": (_round(dy + photo.subject_bottom_y * scale)
+                              if photo.subject_bottom_y is not None else None),
+        "slot_bottom_mm": _round(box["y"] + box["h"]),
         "head_top_mm": _round(dy + lm.head_top_y * scale),
         "chin_mm": _round(dy + lm.chin_y * scale),
         "resulting_eye_line_ratio": _round(

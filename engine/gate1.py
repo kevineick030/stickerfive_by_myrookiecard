@@ -95,6 +95,14 @@ def check(manifest: dict, min_dpi: int | None = None) -> list[Finding]:
                         f'zu eng um den Kopf fotografiert: hochskaliert, damit das Bild den '
                         f'Slot deckt. Kopf {dev:+.1%} gegenueber dem Zielmass '
                         f'(Toleranz {tol:.0%}) — die Karte faellt aus dem Set'))
+                if p.get("cutout") and p.get("subject_bottom_mm") is not None:
+                    luft = p["slot_bottom_mm"] - p["subject_bottom_mm"]
+                    if luft > 3.0:
+                        out.append(Finding(
+                            "WARN" if luft <= 8.0 else "FAIL", "SUBJECT_FLOATS", sid,
+                            f'der Oberkoerper endet {luft} mm ueber der Unterkante des '
+                            f'Fotofensters — der Spieler schwebt, statt in der Karte zu stehen. '
+                            f'Es fehlt Bild unterhalb des Kopfes'))
                 if p.get("fit_mode") == "ANCHOR":
                     if p["head_top_mm"] < safe - 1e-6:
                         out.append(Finding(

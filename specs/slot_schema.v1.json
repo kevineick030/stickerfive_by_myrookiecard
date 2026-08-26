@@ -82,9 +82,9 @@
         "id": "player_name",
         "type": "text",
         "box": {
-          "x": 10.0,
+          "x": 11.5,
           "y": 4.0,
-          "w": 34.0,
+          "w": 31.5,
           "h": 4.2
         },
         "source": "person.display_name",
@@ -142,9 +142,9 @@
         "id": "club_name",
         "type": "text",
         "box": {
-          "x": 10.0,
+          "x": 11.5,
           "y": 8.8,
-          "w": 34.0,
+          "w": 31.5,
           "h": 3.2
         },
         "source": "club.name",
@@ -232,9 +232,10 @@
           "h": 6.0
         },
         "source_offset": {
-          "dx": 0.0,
-          "dy": -8.0
-        }
+          "dx": -13.0,
+          "dy": 0.0
+        },
+        "note": "Quelle liegt 13 mm LINKS daneben, nicht darueber: 8 mm hoeher beginnt die Unterschriftenplatte, von dort holt man weisse Flaeche statt Kristall. Auf gleicher Hoehe daneben stimmt die Struktur."
       }
     ],
     "patches_note": "BEFUND 2026-08-26: auf allen vier gelieferten Vorlagen ist die Auflagennummer bereits eingedruckt (01/01, bei Premium #01/01). Sie wechselt aber je Kopie. Bis es Fassungen ohne sie gibt, wird die Stelle mit Struktur von 8 mm darueber ueberdeckt - auf Kristall unsichtbar, weil das Muster zufaellig ist. Sauberer ist ein Export ohne die Nummer."
@@ -446,7 +447,50 @@
           "align": "right"
         }
       },
-      "note": "Premium Gold. Eigenes Layout: Name und Verein unten auf der dunklen Platte, Auflagennummer oben rechts, kein vorgesehenes Unterschriftenfeld - der Slot liegt behelfsweise ueber dem unteren Bilddrittel. Hier braucht es eine Designentscheidung."
+      "note": "Premium Gold. Eigenes Layout: Name und Verein unten auf der dunklen Platte, Auflagennummer oben rechts, kein vorgesehenes Unterschriftenfeld - der Slot liegt behelfsweise ueber dem unteren Bilddrittel. Hier braucht es eine Designentscheidung. GESPERRT bis zu einem Export ohne eingedruckte Auflagennummer, siehe blocker.",
+      "overlays": [
+        {
+          "id": "kopfband",
+          "box": {
+            "x": 0.0,
+            "y": 0.0,
+            "w": 63.0,
+            "h": 13.5
+          }
+        },
+        {
+          "id": "ecke_links",
+          "box": {
+            "x": 0.0,
+            "y": 33.0,
+            "w": 8.0,
+            "h": 22.0
+          }
+        },
+        {
+          "id": "ecke_rechts",
+          "box": {
+            "x": 55.0,
+            "y": 33.0,
+            "w": 8.0,
+            "h": 22.0
+          }
+        },
+        {
+          "id": "namensplatte",
+          "box": {
+            "x": 0.0,
+            "y": 72.5,
+            "w": 63.0,
+            "h": 15.5
+          }
+        }
+      ],
+      "blocker": {
+        "code": "TEMPLATE_HAS_PRINTED_SERIAL",
+        "severity": "HARD",
+        "note": "Die eingedruckte Nummer '#01/01' sitzt direkt an der Kante des Kopfbands. Anders als bei den Kristallvorlagen gibt es auf dieser Vorlage keine Stelle, deren Struktur als Ersatz taugt - automatisch geprueft: die beste Fundstelle weicht in Farbe und Streuung deutlich ab. Ueberdecken waere sichtbares Flicken. Es braucht einen Export ohne die Nummer, bevor Premium in Produktion geht."
+      }
     },
     {
       "id": "DESIGN-5",
