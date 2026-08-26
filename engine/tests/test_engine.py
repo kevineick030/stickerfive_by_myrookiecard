@@ -115,7 +115,7 @@ class TestTextsatz(unittest.TestCase):
         self.assertEqual(p["size_pt"], p["declared_size_pt"])
 
     def test_langer_name_wird_verkleinert_statt_abgeschnitten(self):
-        p = slot_of(manifest(make_card(player_name="Maximilian Oberhauser")), "front", "player_name")
+        p = slot_of(manifest(make_card(player_name="Maximilian Oberhauser-Schmid")), "front", "player_name")
         self.assertTrue(p["autofit_applied"])
         self.assertLess(p["size_pt"], p["declared_size_pt"])
         self.assertGreaterEqual(p["size_pt"], p["min_size_pt"])
@@ -128,7 +128,7 @@ class TestTextsatz(unittest.TestCase):
         self.assertTrue(any(f.code == "TEXT_OVERFLOW" for f in check(manifest(card))))
 
     def test_diakritika_werden_als_vorhanden_erkannt(self):
-        p = slot_of(manifest(make_card(player_name="Maximilian Oberhauser")), "front", "player_name")
+        p = slot_of(manifest(make_card(player_name="Maximilian Oberhauser-Schmid")), "front", "player_name")
         self.assertEqual(p["missing_glyphs"], [])
 
     def test_fehlende_glyphe_faellt_auf(self):

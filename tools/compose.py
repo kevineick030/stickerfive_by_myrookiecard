@@ -45,11 +45,12 @@ FONTS = {k: load_font(v) for k, v in TTF.items()}
 GOLD = ("#8A6620", "#FFF3C0", "#C89A3C")     # dunkel, Glanz, tief
 WEISS = ("#DCE6F2", "#FFFFFF", "#B9C9DD")
 DUNKEL = ("#3A2B0A", "#5A4410", "#1A1204")
+BLAU   = ("#12318F", "#2E5FD8", "#0B1F63")
 
 DESIGNS = {
-    "DESIGN-1": ("blau.png",    {"player_name": WEISS, "club_name": DUNKEL,
+    "DESIGN-1": ("blau.png",    {"player_name": GOLD, "club_name": BLAU,
                                  "jersey_number": GOLD, "serial": GOLD}),
-    "DESIGN-2": ("schwarz.png", {"player_name": WEISS, "club_name": DUNKEL,
+    "DESIGN-2": ("schwarz.png", {"player_name": GOLD, "club_name": DUNKEL,
                                  "jersey_number": GOLD, "serial": GOLD}),
     # Auf der Goldvorlage ist Gold auf Gold unsichtbar. Die Zahlen bekommen
     # dort Creme mit dunklem Schatten - so wie auf der Beispielkarte.

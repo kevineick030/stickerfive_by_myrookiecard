@@ -1,7 +1,7 @@
 {
   "id": "TC-A",
   "version": "1.0.0",
-  "status": "An den echten leeren Vorlagen ausgemessen (2026-08-26, 1438 x 2000 px = 63 x 88 mm). blau, schwarz und gold teilen dieses Raster; gold sitzt 0,6 mm rechts und 1,4 mm tiefer, premium hat ein eigenes Layout - beides in slot_overrides.",
+  "status": "Textgeometrie an der echten Beispielkarte assets/templates/3.png gemessen (2026-08-26), nicht mehr geschaetzt.",
   "note": "Alle vier Templates teilen dieses Schema. Es unterscheiden sich nur Grafik, Farbwelt und Druckspezifikation. Ergebnis: ein Renderer, ein QA-Regelsatz, ein Golden Set.",
   "geometry": {
     "unit": "mm",
@@ -26,21 +26,21 @@
         "fit_mode": "ANCHOR",
         "anchors": {
           "eye_line_ratio": 0.38,
-          "head_height_ratio": 0.3364,
+          "head_height_ratio": 0.299,
           "center_x_ratio": 0.5,
           "tolerance_ratio": 0.02,
-          "head_top_ratio": 0.0327,
+          "head_top_ratio": 0.0374,
           "note": "Verankert wird an Scheitel und Kopfhoehe - zwei Groessen, die sich aus der Freistellmaske direkt messen lassen. Die frueher benutzte Augenlinie war geschaetzt (45 % der Kopfhoehe) und liegt bei voluminoesem Haar tatsaechlich bei ueber 60 %; dann rutscht der ganze Koerper. eye_line_ratio bleibt als Sollwert fuer die Pruefung stehen, steuert aber die Platzierung nicht mehr."
         },
         "note": "Die Ankerregel ist der Grund, warum 60 unterschiedlich geschnittene Handyfotos wie ein Set aussehen. Der Renderer berechnet Skalierung und Versatz aus den Landmarks aus Schicht A.",
         "required": true,
         "derived_requirements": {
-          "head_height_mm_on_card": 18.0,
-          "min_head_height_px": 213,
+          "head_height_mm_on_card": 16.0,
+          "min_head_height_px": 189,
           "note": "HERGELEITET aus box.h und head_height_ratio, nicht geschaetzt: damit der Kopf nach der Ankerskalierung noch 300 dpi hat, muss er im Quellbild mindestens 283 px hoch sein. tools/photo_requirements.py rechnet das aus dem Schema nach; Gate 1 prueft die Folge (LOW_EFFECTIVE_DPI).",
-          "min_image_width_per_head_height": 2.945,
-          "min_above_eye_per_head_height": 1.13,
-          "min_below_eye_per_head_height": 1.843,
+          "min_image_width_per_head_height": 3.313,
+          "min_above_eye_per_head_height": 1.271,
+          "min_below_eye_per_head_height": 2.074,
           "framing_note": "Damit das Bild den Slot ohne Aufskalieren deckt, muss um den Kopf herum genug Bild liegen: Breite >= 2.22 x Kopfhoehe, ueber der Augenlinie >= 0.83 x Kopfhoehe, darunter >= 1.35 x Kopfhoehe. Alles aus box und anchors hergeleitet, siehe tools/photo_requirements.py."
         },
         "coverage_scale_tolerance": 0.15
@@ -84,14 +84,14 @@
         "id": "player_name",
         "type": "text",
         "box": {
-          "x": 12.0,
-          "y": 4.1,
-          "w": 31.0,
-          "h": 3.1
+          "x": 11.5,
+          "y": 3.7,
+          "w": 32.0,
+          "h": 2.9
         },
         "source": "person.display_name",
         "font": "display",
-        "size_pt": 10.0,
+        "size_pt": 9.4,
         "min_size_pt": 7.0,
         "align": "center",
         "transform": "uppercase",
@@ -105,14 +105,14 @@
         "id": "jersey_number",
         "type": "text",
         "box": {
-          "x": 42.5,
-          "y": 6.4,
-          "w": 13.0,
-          "h": 8.2
+          "x": 48.0,
+          "y": 6.5,
+          "w": 10.0,
+          "h": 8.0
         },
         "source": "person.jersey_number",
         "font": "display",
-        "size_pt": 27.0,
+        "size_pt": 26.4,
         "min_size_pt": 18.0,
         "align": "right",
         "transform": "none",
@@ -147,14 +147,14 @@
         "id": "club_name",
         "type": "text",
         "box": {
-          "x": 13.5,
-          "y": 8.9,
+          "x": 14.0,
+          "y": 9.3,
           "w": 27.0,
-          "h": 2.1
+          "h": 2.2
         },
         "source": "club.name",
         "font": "body",
-        "size_pt": 7.25,
+        "size_pt": 7.7,
         "min_size_pt": 5.5,
         "align": "center",
         "transform": "uppercase",
@@ -184,13 +184,13 @@
         "type": "text",
         "box": {
           "x": 21.5,
-          "y": 80.6,
+          "y": 82.0,
           "w": 20.0,
-          "h": 3.1
+          "h": 3.2
         },
         "source": "card.copy_index_of_total",
         "font": "display",
-        "size_pt": 10.0,
+        "size_pt": 10.4,
         "min_size_pt": 8.0,
         "align": "center",
         "transform": "none",
