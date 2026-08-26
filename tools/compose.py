@@ -26,22 +26,80 @@ SCHEMA = json.loads((ROOT / "specs" / "slot_schema.v1.json").read_text(encoding=
 FAMILIES = {f["id"]: f for f in SCHEMA["families"]}
 GEO = SCHEMA["geometry"]
 
-TTF = {"display": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-       "body": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"}
+# PLATZHALTER: Anton und Oswald stehen fuer die echte Hausschrift der Karten.
+# Eine Systemschrift wie DejaVu ist zu breit und zu weich - Namen mussten
+# verkleinert werden und wirkten dadurch beliebig. Sobald die Originalschrift
+# vorliegt, wird hier nur der Pfad getauscht; alle Groessen bleiben gueltig,
+# weil die Engine mit echten Schriftmetriken rechnet.
+TTF = {"display": str(ROOT / "assets" / "fonts" / "anton.ttf"),
+       "body": str(ROOT / "assets" / "fonts" / "oswald.ttf")}
 FONTS = {k: load_font(v) for k, v in TTF.items()}
 
 # Vorlagendatei und Textfarben je Design. Die Geometrie steht im Schema,
 # die Farben gehoeren zum Artwork - deshalb hier.
+# Gold ist auf diesen Karten nie eine Flaeche, sondern ein Verlauf mit
+# Glanzkante. Genau das unterscheidet eine gedruckte Sammelkarte von einem
+# Etikett - und war der Hauptgrund, warum die Zahlen "billig" wirkten.
+GOLD = ("#8A6620", "#FFF3C0", "#C89A3C")     # dunkel, Glanz, tief
+WEISS = ("#DCE6F2", "#FFFFFF", "#B9C9DD")
+DUNKEL = ("#3A2B0A", "#5A4410", "#1A1204")
+
 DESIGNS = {
-    "DESIGN-1": ("blau.png",    {"player_name": "#FFFFFF", "club_name": "#241A05",
-                                 "jersey_number": "#F0D28A", "serial": "#EBD9A6"}),
-    "DESIGN-2": ("schwarz.png", {"player_name": "#FFFFFF", "club_name": "#241A05",
-                                 "jersey_number": "#F0D28A", "serial": "#EBD9A6"}),
-    "DESIGN-3": ("gold.png",    {"player_name": "#1A1204", "club_name": "#241A05",
-                                 "jersey_number": "#FFF3C8", "serial": "#FFF3C8"}),
-    "DESIGN-4": ("premium.png", {"player_name": "#F3E3AE", "club_name": "#D6B15C",
-                                 "jersey_number": "#F3E3AE", "serial": "#D6B15C"}),
+    "DESIGN-1": ("blau.png",    {"player_name": WEISS, "club_name": DUNKEL,
+                                 "jersey_number": GOLD, "serial": GOLD}),
+    "DESIGN-2": ("schwarz.png", {"player_name": WEISS, "club_name": DUNKEL,
+                                 "jersey_number": GOLD, "serial": GOLD}),
+    "DESIGN-3": ("gold.png",    {"player_name": DUNKEL, "club_name": DUNKEL,
+                                 "jersey_number": ("#5A3F0C", "#FFF8DC", "#8A6620"),
+                                 "serial": ("#5A3F0C", "#FFF8DC", "#8A6620")}),
+    "DESIGN-4": ("premium.png", {"player_name": GOLD, "club_name": GOLD,
+                                 "jersey_number": GOLD, "serial": GOLD}),
 }
+
+
+def _verlauf(w: int, h: int, farben: tuple[str, str, str]) -> Image.Image:
+    """Senkrechter Dreiklang dunkel - Glanz - tief, wie bei Goldpraegung."""
+    unten, glanz, tief = (Image.new("RGB", (1, 1), c).getpixel((0, 0)) for c in farben)
+    band = Image.new("RGB", (1, max(h, 2)))
+    px = band.load()
+    for y in range(band.height):
+        t = y / (band.height - 1)
+        a, b, lokal = (unten, glanz, t / 0.42) if t < 0.42 else (glanz, tief, (t - 0.42) / 0.58)
+        px[0, y] = tuple(round(a[i] + (b[i] - a[i]) * lokal) for i in range(3))
+    return band.resize((max(w, 1), max(h, 1)), Image.BILINEAR)
+
+
+def _setze(zeichner, xy, zeile, font, anker, spur, **kw):
+    """Eine Zeile setzen, bei Bedarf mit Laufweite (Zeichen fuer Zeichen)."""
+    if not spur:
+        zeichner.text(xy, zeile, font=font, anchor=anker, **kw)
+        return
+    breite = sum(font.getlength(c) + spur for c in zeile) - spur
+    x = xy[0] - (breite / 2 if anker[0] == "m" else breite if anker[0] == "r" else 0)
+    for c in zeile:
+        zeichner.text((x, xy[1]), c, font=font, anchor="l" + anker[1], **kw)
+        x += font.getlength(c) + spur
+
+
+def text_mit_verlauf(karte, xy, zeile, font, farben, anker, kontur, spur=0.0):
+    """Text als Maske setzen und den Verlauf hindurchgiessen."""
+    if isinstance(farben, str):
+        _setze(ImageDraw.Draw(karte), xy, zeile, font, anker, spur, fill=farben)
+        return
+    if kontur:
+        rand = Image.new("L", karte.size, 0)
+        _setze(ImageDraw.Draw(rand), xy, zeile, font, anker, spur,
+               fill=255, stroke_width=kontur, stroke_fill=255)
+        karte.paste(Image.new("RGB", karte.size, (8, 10, 16)), (0, 0), rand)
+    hilfs = Image.new("L", karte.size, 0)
+    _setze(ImageDraw.Draw(hilfs), xy, zeile, font, anker, spur, fill=255)
+    kasten = hilfs.getbbox()
+    if not kasten:
+        return
+    flaeche = Image.new("RGB", karte.size, farben[1])
+    flaeche.paste(_verlauf(kasten[2] - kasten[0], kasten[3] - kasten[1], farben),
+                  (kasten[0], kasten[1]))
+    karte.paste(flaeche, (0, 0), hilfs)
 
 
 def mm(v: float, dpi: int) -> float:
@@ -110,20 +168,19 @@ def compose(family_id: str, card: CardData, cut_png: pathlib.Path, lm: dict,
         karte.paste(quelle, kasten(b)[:2])
 
     # --- Text ---
-    d = ImageDraw.Draw(karte)
     for p in manifest["front"]["placements"]:
         if p["type"] != "text" or not p.get("text"):
             continue
         f = ImageFont.truetype(TTF.get(p["font"], TTF["body"]),
                                round(mm(p["size_pt"] * 25.4 / 72, dpi)))
         farbe = farben.get(p["slot"], "#FFFFFF")
+        kontur = round(mm(p["size_pt"] * 0.055 * 25.4 / 72, dpi)) \
+            if p["slot"] in ("jersey_number", "serial") else 0
+        spur = mm(p.get("letter_spacing_em", 0.0) * p["size_pt"] * 25.4 / 72, dpi)
+        anker = {"center": "ms", "right": "rs", "left": "ls"}.get(p["align"], "ls")
         for zeile, basis in zip(p["lines"], p["baselines_mm"]):
-            x = mm(p["anchor_x_mm"], dpi)
-            anker = {"center": "ms", "right": "rs", "left": "ls"}.get(p["align"], "ls")
-            d.text((x, mm(basis, dpi)), zeile, font=f, fill=farbe, anchor=anker,
-                   stroke_width=max(1, round(mm(p["size_pt"] * 0.09 * 25.4 / 72, dpi)))
-                   if p["slot"] in ("jersey_number", "serial") else 0,
-                   stroke_fill="#0B0D12")
+            text_mit_verlauf(karte, (mm(p["anchor_x_mm"], dpi), mm(basis, dpi)),
+                             zeile, f, farbe, anker, kontur, spur)
     return karte, befunde
 
 

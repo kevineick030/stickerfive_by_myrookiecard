@@ -21,15 +21,15 @@
           "x": 5.0,
           "y": 12.5,
           "w": 53.0,
-          "h": 50.0
+          "h": 53.5
         },
         "fit_mode": "ANCHOR",
         "anchors": {
           "eye_line_ratio": 0.38,
-          "head_height_ratio": 0.36,
+          "head_height_ratio": 0.3364,
           "center_x_ratio": 0.5,
           "tolerance_ratio": 0.02,
-          "head_top_ratio": 0.035,
+          "head_top_ratio": 0.0327,
           "note": "Verankert wird an Scheitel und Kopfhoehe - zwei Groessen, die sich aus der Freistellmaske direkt messen lassen. Die frueher benutzte Augenlinie war geschaetzt (45 % der Kopfhoehe) und liegt bei voluminoesem Haar tatsaechlich bei ueber 60 %; dann rutscht der ganze Koerper. eye_line_ratio bleibt als Sollwert fuer die Pruefung stehen, steuert aber die Platzierung nicht mehr."
         },
         "note": "Die Ankerregel ist der Grund, warum 60 unterschiedlich geschnittene Handyfotos wie ein Set aussehen. Der Renderer berechnet Skalierung und Versatz aus den Landmarks aus Schicht A.",
@@ -38,9 +38,9 @@
           "head_height_mm_on_card": 18.0,
           "min_head_height_px": 213,
           "note": "HERGELEITET aus box.h und head_height_ratio, nicht geschaetzt: damit der Kopf nach der Ankerskalierung noch 300 dpi hat, muss er im Quellbild mindestens 283 px hoch sein. tools/photo_requirements.py rechnet das aus dem Schema nach; Gate 1 prueft die Folge (LOW_EFFECTIVE_DPI).",
-          "min_image_width_per_head_height": 2.944,
-          "min_above_eye_per_head_height": 1.056,
-          "min_below_eye_per_head_height": 1.722,
+          "min_image_width_per_head_height": 2.945,
+          "min_above_eye_per_head_height": 1.13,
+          "min_below_eye_per_head_height": 1.843,
           "framing_note": "Damit das Bild den Slot ohne Aufskalieren deckt, muss um den Kopf herum genug Bild liegen: Breite >= 2.22 x Kopfhoehe, ueber der Augenlinie >= 0.83 x Kopfhoehe, darunter >= 1.35 x Kopfhoehe. Alles aus box und anchors hergeleitet, siehe tools/photo_requirements.py."
         },
         "coverage_scale_tolerance": 0.15
@@ -84,14 +84,14 @@
         "id": "player_name",
         "type": "text",
         "box": {
-          "x": 11.5,
+          "x": 11.0,
           "y": 4.0,
-          "w": 31.5,
-          "h": 4.2
+          "w": 33.0,
+          "h": 4.8
         },
         "source": "person.display_name",
         "font": "display",
-        "size_pt": 10.0,
+        "size_pt": 11.5,
         "min_size_pt": 8.0,
         "align": "center",
         "transform": "uppercase",
@@ -105,19 +105,20 @@
         "type": "text",
         "box": {
           "x": 45.0,
-          "y": 13.5,
-          "w": 12.0,
-          "h": 8.0
+          "y": 4.5,
+          "w": 14.0,
+          "h": 13.0
         },
         "source": "person.jersey_number",
         "font": "display",
-        "size_pt": 19.0,
-        "min_size_pt": 15.0,
+        "size_pt": 31.5,
+        "min_size_pt": 20.0,
         "align": "right",
         "transform": "none",
         "max_lines": 1,
         "qa_region": true,
-        "required": false
+        "required": false,
+        "note": "Oben rechts auf dem Kristall, deutlich groesser als zuvor. Eine kleine Nummer wirkt wie ein Etikett statt wie Teil des Designs."
       },
       {
         "id": "position",
@@ -144,20 +145,22 @@
         "id": "club_name",
         "type": "text",
         "box": {
-          "x": 11.5,
-          "y": 8.8,
-          "w": 31.5,
+          "x": 12.5,
+          "y": 9.0,
+          "w": 30.0,
           "h": 3.2
         },
         "source": "club.name",
         "font": "body",
-        "size_pt": 7.0,
+        "size_pt": 7.5,
         "min_size_pt": 5.5,
         "align": "center",
-        "transform": "none",
+        "transform": "uppercase",
         "max_lines": 1,
         "qa_region": true,
-        "required": true
+        "required": true,
+        "letter_spacing_em": 0.08,
+        "note": "Grossbuchstaben wie beim Namen. Gemischte Schreibung darunter las sich wie zwei verschiedene Karten; auf der Vorlage sind beide Baender gleich gebaut, also gehoert auch der Satz gleich."
       },
       {
         "id": "signature",
@@ -177,15 +180,15 @@
         "id": "serial",
         "type": "text",
         "box": {
-          "x": 25.5,
-          "y": 79.8,
-          "w": 12.0,
-          "h": 4.0
+          "x": 21.5,
+          "y": 79.0,
+          "w": 20.0,
+          "h": 5.0
         },
         "source": "card.copy_index_of_total",
         "font": "display",
-        "size_pt": 7.0,
-        "min_size_pt": 6.0,
+        "size_pt": 12.0,
+        "min_size_pt": 9.0,
         "align": "center",
         "transform": "none",
         "max_lines": 1,
@@ -401,33 +404,33 @@
             "x": 7.0,
             "y": 14.0,
             "w": 49.0,
-            "h": 58.0
+            "h": 61.0
           }
         },
         "player_name": {
           "box": {
             "x": 11.5,
-            "y": 75.0,
+            "y": 73.4,
             "w": 40.0,
-            "h": 4.6
+            "h": 4.8
           },
           "align": "center"
         },
         "club_name": {
           "box": {
             "x": 11.5,
-            "y": 80.0,
+            "y": 78.6,
             "w": 40.0,
-            "h": 3.2
+            "h": 3.0
           },
           "align": "center"
         },
         "jersey_number": {
           "box": {
-            "x": 25.5,
-            "y": 64.0,
-            "w": 12.0,
-            "h": 8.0
+            "x": 24.5,
+            "y": 60.0,
+            "w": 14.0,
+            "h": 13.0
           },
           "align": "center"
         },
@@ -440,13 +443,7 @@
           }
         },
         "serial": {
-          "box": {
-            "x": 44.2,
-            "y": 10.0,
-            "w": 13.4,
-            "h": 4.6
-          },
-          "align": "right"
+          "hidden": true
         }
       },
       "note": "Premium Gold. Eigenes Layout: Name und Verein unten auf der dunklen Platte, Auflagennummer oben rechts, kein vorgesehenes Unterschriftenfeld - der Slot liegt behelfsweise ueber dem unteren Bilddrittel. Hier braucht es eine Designentscheidung. GESPERRT bis zu einem Export ohne eingedruckte Auflagennummer, siehe blocker.",
@@ -491,7 +488,7 @@
       "blocker": {
         "code": "TEMPLATE_HAS_PRINTED_SERIAL",
         "severity": "HARD",
-        "note": "Die eingedruckte Nummer '#01/01' sitzt direkt an der Kante des Kopfbands. Anders als bei den Kristallvorlagen gibt es auf dieser Vorlage keine Stelle, deren Struktur als Ersatz taugt - automatisch geprueft: die beste Fundstelle weicht in Farbe und Streuung deutlich ab. Ueberdecken waere sichtbares Flicken. Es braucht einen Export ohne die Nummer, bevor Premium in Produktion geht."
+        "note": "Die eingedruckte Nummer '#01/01' sitzt direkt an der Kante des Kopfbands. Anders als bei den Kristallvorlagen gibt es auf dieser Vorlage keine Stelle, deren Struktur als Ersatz taugt - automatisch geprueft: die beste Fundstelle weicht in Farbe und Streuung deutlich ab. Ueberdecken waere sichtbares Flicken. Es braucht einen Export ohne die Nummer, bevor Premium in Produktion geht. Solange die Sperre steht, wird die Auflagennummer nicht gesetzt - sonst stuenden zwei Nummern uebereinander."
       }
     },
     {
