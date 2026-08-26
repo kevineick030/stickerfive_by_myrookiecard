@@ -222,7 +222,14 @@ def _place_photo_anchor(slot: dict, photo: PhotoAsset) -> dict:
     scale = max(scale_anchor, scale_needed)
 
     dx = box["x"] + anchors["center_x_ratio"] * box["w"] - lm.center_x * scale
-    dy = box["y"] + anchors["eye_line_ratio"] * box["h"] - lm.eye_line_y * scale
+    if "head_top_ratio" in anchors:
+        # Scheitel statt Augenlinie: beides legt zusammen mit der Kopfhoehe die
+        # Platzierung eindeutig fest, aber der Scheitel ist gemessen und die
+        # Augenlinie war geschaetzt. Bei viel Haar lag die Schaetzung um ein
+        # Sechstel der Kopfhoehe daneben - sichtbar als verrutschter Koerper.
+        dy = box["y"] + anchors["head_top_ratio"] * box["h"] - lm.head_top_y * scale
+    else:
+        dy = box["y"] + anchors["eye_line_ratio"] * box["h"] - lm.eye_line_y * scale
 
     img_w, img_h = photo.width_px * scale, photo.height_px * scale
     head_ratio = lm.head_height * scale / box["h"]

@@ -18,9 +18,13 @@ FONTS = {
     "display": load_font("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
     "body": load_font("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
 }
-# Ein regelkonformes Handyfoto: Kopf 860 px hoch, ringsum genug Bild fuer das
-# nahezu quadratische Fotofenster der Prizm-Vorlage (Breite >= 2,22 x Kopfhoehe).
-PHOTO_OK = PhotoAsset("a" * 64, 2000, 2400, Landmarks(887, 500, 1360, 1000))
+# Der Normalfall: ein FREIGESTELLTER Spieler. Kopf 700 px, darunter 1980 px
+# Oberkoerper - das sind 2,8 Kopfhoehen und damit genug, um vom Scheitelanker
+# bis zur Unterkante des Fotofensters zu reichen.
+PHOTO_OK = PhotoAsset("a" * 64, 1800, 2400, Landmarks(830, 400, 1100, 900),
+                      cutout=True, subject_bottom_y=2380)
+# Ein unfreigestelltes Vollbild - fuer die Deckungsregel, die nur dort gilt.
+PHOTO_VOLL = PhotoAsset("v" * 64, 2000, 2400, Landmarks(887, 500, 1360, 1000))
 
 
 def make_card(**kw) -> CardData:
@@ -48,38 +52,58 @@ def slot_of(m, side, sid):
 class TestAnkerregel(unittest.TestCase):
     """Der Kern: unterschiedliche Ausschnitte, dieselbe Augenlinie."""
 
-    def test_augenlinie_trifft_anker_unabhaengig_vom_ausschnitt(self):
-        anchors = next(s for s in SCHEMA["front"]["slots"] if s["id"] == "photo")["anchors"]
+    def test_scheitel_trifft_anker_unabhaengig_vom_ausschnitt(self):
+        """Der Kern: drei verschiedene Ausschnitte, ein Scheitel auf einer Hoehe."""
+        slot = next(s for s in SCHEMA["front"]["slots"] if s["id"] == "photo")
+        soll = slot["box"]["y"] + slot["anchors"]["head_top_ratio"] * slot["box"]["h"]
         varianten = [
-            PhotoAsset("a" * 64, 2000, 2400, Landmarks(887, 500, 1360, 1000)),
-            PhotoAsset("b" * 64, 1800, 2000, Landmarks(742, 400, 1160, 900)),
-            PhotoAsset("c" * 64, 2400, 2600, Landmarks(1023, 600, 1540, 1200)),
+            PhotoAsset("a" * 64, 1800, 2400, Landmarks(830, 400, 1100, 900),
+                       cutout=True, subject_bottom_y=2380),
+            PhotoAsset("b" * 64, 1400, 2000, Landmarks(690, 330, 910, 700),
+                       cutout=True, subject_bottom_y=1980),
+            PhotoAsset("c" * 64, 2400, 3200, Landmarks(1100, 520, 1470, 1200),
+                       cutout=True, subject_bottom_y=3180),
         ]
         for p in varianten:
             with self.subTest(px=(p.width_px, p.height_px)):
-                got = photo_of(manifest(photo=p))["resulting_eye_line_ratio"]
-                self.assertAlmostEqual(got, anchors["eye_line_ratio"], places=3)
+                pl = photo_of(manifest(photo=p))
+                self.assertAlmostEqual(pl["head_top_mm"], soll, places=3)
+                self.assertAlmostEqual(pl["resulting_head_height_ratio"],
+                                       slot["anchors"]["head_height_ratio"], places=3)
 
-    def test_kopfhoehe_trifft_anker_wenn_genug_rand_da_ist(self):
+    def test_freisteller_wird_nie_wegen_deckung_hochskaliert(self):
+        """Den Hintergrund liefert die Vorlage - es gibt nichts zu decken."""
         anchors = next(s for s in SCHEMA["front"]["slots"] if s["id"] == "photo")["anchors"]
         pl = photo_of(manifest())
         self.assertFalse(pl["scale_adjusted_for_coverage"])
         self.assertAlmostEqual(pl["resulting_head_height_ratio"],
                                anchors["head_height_ratio"], places=3)
 
+    def test_zu_wenig_oberkoerper_meldet_schwebenden_spieler(self):
+        kurz = PhotoAsset("k" * 64, 1800, 1500, Landmarks(830, 400, 1100, 900),
+                          cutout=True, subject_bottom_y=1480)
+        befunde = check(manifest(photo=kurz))
+        self.assertTrue(any(f.code == "SUBJECT_FLOATS" for f in befunde))
+
     def test_zu_enger_ausschnitt_wird_hochskaliert_und_gemeldet(self):
         eng = PhotoAsset("z" * 64, 900, 2400, Landmarks(887, 500, 1360, 450))
         pl = photo_of(manifest(photo=eng))
+        self.assertFalse(eng.cutout, "die Deckungsregel gilt nur fuer Vollbilder")
         self.assertTrue(pl["scale_adjusted_for_coverage"])
         self.assertGreater(pl["scale_mm_per_px"], pl["scale_from_anchor"])
         self.assertGreater(pl["head_ratio_deviation"], 0)
-        # Die Augenlinie bleibt trotzdem exakt auf dem Anker - sonst zerfaellt das Set.
-        self.assertAlmostEqual(pl["resulting_eye_line_ratio"], 0.38, places=3)
+        # Der Scheitel bleibt trotzdem exakt auf dem Anker - sonst zerfaellt das Set.
+        slot = next(s for s in SCHEMA["front"]["slots"] if s["id"] == "photo")
+        soll = slot["box"]["y"] + slot["anchors"]["head_top_ratio"] * slot["box"]["h"]
+        self.assertAlmostEqual(pl["head_top_mm"], soll, places=3)
 
     def test_coverage_scale_ist_die_untere_schranke(self):
         slot = next(s for s in SCHEMA["front"]["slots"] if s["id"] == "photo")
-        self.assertLess(coverage_scale(slot, PHOTO_OK),
-                        photo_of(manifest())["scale_mm_per_px"] + 1e-9)
+        # Nur beim Vollbild: dort muss das Bild den Slot decken.
+        pl = photo_of(manifest(photo=PHOTO_VOLL))
+        self.assertLessEqual(coverage_scale(slot, PHOTO_VOLL),
+                             pl["scale_mm_per_px"] + 1e-9)
+        self.assertTrue(pl["scale_adjusted_for_coverage"])
 
 
 class TestTextsatz(unittest.TestCase):

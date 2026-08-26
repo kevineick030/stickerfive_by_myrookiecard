@@ -26,19 +26,21 @@
         "fit_mode": "ANCHOR",
         "anchors": {
           "eye_line_ratio": 0.38,
-          "head_height_ratio": 0.46,
+          "head_height_ratio": 0.36,
           "center_x_ratio": 0.5,
-          "tolerance_ratio": 0.02
+          "tolerance_ratio": 0.02,
+          "head_top_ratio": 0.035,
+          "note": "Verankert wird an Scheitel und Kopfhoehe - zwei Groessen, die sich aus der Freistellmaske direkt messen lassen. Die frueher benutzte Augenlinie war geschaetzt (45 % der Kopfhoehe) und liegt bei voluminoesem Haar tatsaechlich bei ueber 60 %; dann rutscht der ganze Koerper. eye_line_ratio bleibt als Sollwert fuer die Pruefung stehen, steuert aber die Platzierung nicht mehr."
         },
         "note": "Die Ankerregel ist der Grund, warum 60 unterschiedlich geschnittene Handyfotos wie ein Set aussehen. Der Renderer berechnet Skalierung und Versatz aus den Landmarks aus Schicht A.",
         "required": true,
         "derived_requirements": {
-          "head_height_mm_on_card": 23.0,
-          "min_head_height_px": 272,
+          "head_height_mm_on_card": 18.0,
+          "min_head_height_px": 213,
           "note": "HERGELEITET aus box.h und head_height_ratio, nicht geschaetzt: damit der Kopf nach der Ankerskalierung noch 300 dpi hat, muss er im Quellbild mindestens 283 px hoch sein. tools/photo_requirements.py rechnet das aus dem Schema nach; Gate 1 prueft die Folge (LOW_EFFECTIVE_DPI).",
-          "min_image_width_per_head_height": 2.304,
-          "min_above_eye_per_head_height": 0.826,
-          "min_below_eye_per_head_height": 1.348,
+          "min_image_width_per_head_height": 2.944,
+          "min_above_eye_per_head_height": 1.056,
+          "min_below_eye_per_head_height": 1.722,
           "framing_note": "Damit das Bild den Slot ohne Aufskalieren deckt, muss um den Kopf herum genug Bild liegen: Breite >= 2.22 x Kopfhoehe, ueber der Augenlinie >= 0.83 x Kopfhoehe, darunter >= 1.35 x Kopfhoehe. Alles aus box und anchors hergeleitet, siehe tools/photo_requirements.py."
         },
         "coverage_scale_tolerance": 0.15
