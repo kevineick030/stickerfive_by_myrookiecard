@@ -15,7 +15,7 @@ import json
 import pathlib
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from engine.fontmetrics import load_font
 from engine.gate1 import check
@@ -49,9 +49,11 @@ DESIGNS = {
                                  "jersey_number": GOLD, "serial": GOLD}),
     "DESIGN-2": ("schwarz.png", {"player_name": WEISS, "club_name": DUNKEL,
                                  "jersey_number": GOLD, "serial": GOLD}),
+    # Auf der Goldvorlage ist Gold auf Gold unsichtbar. Die Zahlen bekommen
+    # dort Creme mit dunklem Schatten - so wie auf der Beispielkarte.
     "DESIGN-3": ("gold.png",    {"player_name": DUNKEL, "club_name": DUNKEL,
-                                 "jersey_number": ("#5A3F0C", "#FFF8DC", "#8A6620"),
-                                 "serial": ("#5A3F0C", "#FFF8DC", "#8A6620")}),
+                                 "jersey_number": ("#FFF6D8", "#FFFFFF", "#E7CE8E"),
+                                 "serial": ("#FFF6D8", "#FFFFFF", "#E7CE8E")}),
     "DESIGN-4": ("premium.png", {"player_name": GOLD, "club_name": GOLD,
                                  "jersey_number": GOLD, "serial": GOLD}),
 }
@@ -81,16 +83,21 @@ def _setze(zeichner, xy, zeile, font, anker, spur, **kw):
         x += font.getlength(c) + spur
 
 
-def text_mit_verlauf(karte, xy, zeile, font, farben, anker, kontur, spur=0.0):
-    """Text als Maske setzen und den Verlauf hindurchgiessen."""
+def text_mit_verlauf(karte, xy, zeile, font, farben, anker, schatten, spur=0.0):
+    """Text als Maske setzen und den Verlauf hindurchgiessen.
+
+    Ein harter schwarzer Umriss ringsum ist der WordArt-Effekt, an dem man
+    Amateursatz erkennt. Eine Praegung wirft stattdessen einen weichen
+    Schatten nach unten - schmal, versetzt, nicht ringsum.
+    """
     if isinstance(farben, str):
         _setze(ImageDraw.Draw(karte), xy, zeile, font, anker, spur, fill=farben)
         return
-    if kontur:
-        rand = Image.new("L", karte.size, 0)
-        _setze(ImageDraw.Draw(rand), xy, zeile, font, anker, spur,
-               fill=255, stroke_width=kontur, stroke_fill=255)
-        karte.paste(Image.new("RGB", karte.size, (8, 10, 16)), (0, 0), rand)
+    if schatten:
+        sch = Image.new("L", karte.size, 0)
+        _setze(ImageDraw.Draw(sch), (xy[0], xy[1] + schatten), zeile, font, anker, spur, fill=190)
+        sch = sch.filter(ImageFilter.GaussianBlur(max(1, schatten * 0.9)))
+        karte.paste(Image.new("RGB", karte.size, (10, 12, 18)), (0, 0), sch)
     hilfs = Image.new("L", karte.size, 0)
     _setze(ImageDraw.Draw(hilfs), xy, zeile, font, anker, spur, fill=255)
     kasten = hilfs.getbbox()
@@ -174,13 +181,15 @@ def compose(family_id: str, card: CardData, cut_png: pathlib.Path, lm: dict,
         f = ImageFont.truetype(TTF.get(p["font"], TTF["body"]),
                                round(mm(p["size_pt"] * 25.4 / 72, dpi)))
         farbe = farben.get(p["slot"], "#FFFFFF")
-        kontur = round(mm(p["size_pt"] * 0.055 * 25.4 / 72, dpi)) \
+        # Schatten nur bei den freistehenden Zahlen; Text auf einem Band
+        # braucht keinen, dort traegt der Untergrund.
+        schatten = round(mm(p["size_pt"] * 0.05 * 25.4 / 72, dpi)) \
             if p["slot"] in ("jersey_number", "serial") else 0
         spur = mm(p.get("letter_spacing_em", 0.0) * p["size_pt"] * 25.4 / 72, dpi)
         anker = {"center": "ms", "right": "rs", "left": "ls"}.get(p["align"], "ls")
         for zeile, basis in zip(p["lines"], p["baselines_mm"]):
             text_mit_verlauf(karte, (mm(p["anchor_x_mm"], dpi), mm(basis, dpi)),
-                             zeile, f, farbe, anker, kontur, spur)
+                             zeile, f, farbe, anker, schatten, spur)
     return karte, befunde
 
 

@@ -25,6 +25,14 @@ class Font:
     advances: dict[int, int]     # glyph id -> Vorschub in Font-Einheiten
     cmap: dict[int, int]         # codepoint -> glyph id
     default_advance: int
+    # Versalhoehe aus OS/2 sCapHeight. Sie ist das Mass, an dem ein Setzer
+    # ausrichtet - nicht die Em-Hoehe. Bei Versalsatz stehen sonst 27 %
+    # leerer Oberlaengenraum ueber dem Text und alles sitzt zu tief.
+    cap_height: int = 0
+
+    def cap_height_mm(self, size_pt: float) -> float:
+        ratio = (self.cap_height / self.units_per_em) if self.cap_height else 0.70
+        return ratio * size_pt * MM_PER_PT
 
     def has_glyph(self, ch: str) -> bool:
         return ord(ch) in self.cmap
@@ -118,6 +126,17 @@ def _parse_cmap(data: bytes, offset: int) -> dict[int, int]:
     return cmap
 
 
+def _cap_height(data: bytes, tabs: dict[str, tuple[int, int]]) -> int:
+    """sCapHeight aus OS/2 Version 2 und hoeher; 0, wenn nicht vorhanden."""
+    if "OS/2" not in tabs:
+        return 0
+    off, length = tabs["OS/2"]
+    version = struct.unpack_from(">H", data, off)[0]
+    if version < 2 or length < 90:
+        return 0
+    return struct.unpack_from(">h", data, off + 88)[0]
+
+
 def load_font(path: str | Path) -> Font:
     data = Path(path).read_bytes()
     tabs = _tables(data)
@@ -143,4 +162,5 @@ def load_font(path: str | Path) -> Font:
         advances=advances,
         cmap=_parse_cmap(data, tabs["cmap"][0]),
         default_advance=advances.get(0, units_per_em // 2),
+        cap_height=_cap_height(data, tabs),
     )

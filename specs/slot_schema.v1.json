@@ -85,40 +85,42 @@
         "type": "text",
         "box": {
           "x": 11.0,
-          "y": 4.0,
+          "y": 4.1,
           "w": 33.0,
-          "h": 4.8
+          "h": 3.1
         },
         "source": "person.display_name",
         "font": "display",
-        "size_pt": 11.5,
-        "min_size_pt": 8.0,
+        "size_pt": 10.0,
+        "min_size_pt": 7.0,
         "align": "center",
         "transform": "uppercase",
         "max_lines": 1,
         "qa_region": true,
         "note": "Das schwarze Namensband der Vorlage reicht von 2,3 bis 8,6 mm und ist 34 mm breit. Der TEXT sitzt nur in dessen unterer Haelfte: ab 4 mm beginnt die Sicherheitszone, und Schrift darf beim Schneiden nicht angeschnitten werden - Grafik darf das, Text nicht. 10 pt ist die groesste Groesse, die in die 4,2 mm Boxhoehe passt; waere sie groesser, wuerde JEDER Name verkleinert und die Karten haetten nie dieselbe Namensgroesse. Prueffeld fuer Gate 3a; Autofit unter min_size_pt ist ein Gate-1-Fehler.",
-        "required": true
+        "required": true,
+        "optical": "caps"
       },
       {
         "id": "jersey_number",
         "type": "text",
         "box": {
-          "x": 45.0,
-          "y": 4.5,
-          "w": 14.0,
-          "h": 13.0
+          "x": 44.0,
+          "y": 6.0,
+          "w": 13.5,
+          "h": 8.2
         },
         "source": "person.jersey_number",
         "font": "display",
-        "size_pt": 31.5,
-        "min_size_pt": 20.0,
+        "size_pt": 27.0,
+        "min_size_pt": 18.0,
         "align": "right",
         "transform": "none",
         "max_lines": 1,
         "qa_region": true,
         "required": false,
-        "note": "Oben rechts auf dem Kristall, deutlich groesser als zuvor. Eine kleine Nummer wirkt wie ein Etikett statt wie Teil des Designs."
+        "note": "Oben rechts auf dem Kristall, deutlich groesser als zuvor. Eine kleine Nummer wirkt wie ein Etikett statt wie Teil des Designs.",
+        "optical": "caps"
       },
       {
         "id": "position",
@@ -146,13 +148,13 @@
         "type": "text",
         "box": {
           "x": 12.5,
-          "y": 9.0,
+          "y": 8.9,
           "w": 30.0,
-          "h": 3.2
+          "h": 2.1
         },
         "source": "club.name",
         "font": "body",
-        "size_pt": 7.5,
+        "size_pt": 7.25,
         "min_size_pt": 5.5,
         "align": "center",
         "transform": "uppercase",
@@ -160,7 +162,8 @@
         "qa_region": true,
         "required": true,
         "letter_spacing_em": 0.08,
-        "note": "Grossbuchstaben wie beim Namen. Gemischte Schreibung darunter las sich wie zwei verschiedene Karten; auf der Vorlage sind beide Baender gleich gebaut, also gehoert auch der Satz gleich."
+        "note": "Grossbuchstaben wie beim Namen. Gemischte Schreibung darunter las sich wie zwei verschiedene Karten; auf der Vorlage sind beide Baender gleich gebaut, also gehoert auch der Satz gleich.",
+        "optical": "caps"
       },
       {
         "id": "signature",
@@ -181,20 +184,21 @@
         "type": "text",
         "box": {
           "x": 21.5,
-          "y": 79.0,
+          "y": 80.6,
           "w": 20.0,
-          "h": 5.0
+          "h": 3.1
         },
         "source": "card.copy_index_of_total",
         "font": "display",
-        "size_pt": 12.0,
-        "min_size_pt": 9.0,
+        "size_pt": 10.0,
+        "min_size_pt": 8.0,
         "align": "center",
         "transform": "none",
         "max_lines": 1,
         "qa_region": true,
         "required": true,
-        "note": "Auflagennummer, in der Vorlage als '01/01' vorgezeichnet. Gate 3a liest sie zurueck."
+        "note": "Auflagennummer, in der Vorlage als '01/01' vorgezeichnet. Gate 3a liest sie zurueck.",
+        "optical": "caps"
       }
     ],
     "overlays": [
@@ -243,7 +247,8 @@
         "note": "Quelle liegt 13 mm LINKS daneben, nicht darueber: 8 mm hoeher beginnt die Unterschriftenplatte, von dort holt man weisse Flaeche statt Kristall. Auf gleicher Hoehe daneben stimmt die Struktur."
       }
     ],
-    "patches_note": "BEFUND 2026-08-26: auf allen vier gelieferten Vorlagen ist die Auflagennummer bereits eingedruckt (01/01, bei Premium #01/01). Sie wechselt aber je Kopie. Bis es Fassungen ohne sie gibt, wird die Stelle mit Struktur von 8 mm darueber ueberdeckt - auf Kristall unsichtbar, weil das Muster zufaellig ist. Sauberer ist ein Export ohne die Nummer."
+    "patches_note": "BEFUND 2026-08-26: auf allen vier gelieferten Vorlagen ist die Auflagennummer bereits eingedruckt (01/01, bei Premium #01/01). Sie wechselt aber je Kopie. Bis es Fassungen ohne sie gibt, wird die Stelle mit Struktur von 8 mm darueber ueberdeckt - auf Kristall unsichtbar, weil das Muster zufaellig ist. Sauberer ist ein Export ohne die Nummer.",
+    "box_note": "Bei Slots mit optical=caps ist die Box die VERSALHOEHE: box.y ist die Oberkante der Grossbuchstaben, box.h ihre Hoehe. So misst ein Setzer, und so laesst sich an der Vorlage nachmessen. Die Em-Hoehe waere rund ein Viertel groesser und wuerde den Satz unsichtbar nach unten schieben."
   },
   "back": {
     "slots": [
@@ -410,27 +415,27 @@
         "player_name": {
           "box": {
             "x": 11.5,
-            "y": 73.4,
+            "y": 74.6,
             "w": 40.0,
-            "h": 4.8
+            "h": 3.1
           },
           "align": "center"
         },
         "club_name": {
           "box": {
             "x": 11.5,
-            "y": 78.6,
+            "y": 79.4,
             "w": 40.0,
-            "h": 3.0
+            "h": 2.0
           },
           "align": "center"
         },
         "jersey_number": {
           "box": {
             "x": 24.5,
-            "y": 60.0,
+            "y": 62.0,
             "w": 14.0,
-            "h": 13.0
+            "h": 8.0
           },
           "align": "center"
         },

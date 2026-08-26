@@ -133,11 +133,13 @@ def _fit_text(text: str, font: Font, slot: dict) -> dict:
     max_lines = int(slot.get("max_lines", 1))
     line_height = 1.16
 
+    caps = slot.get("optical") == "caps"
     step = 0.25
     while size >= min_size - 1e-9:
         lines = _wrap(text, font, size, box["w"], spacing, max_lines)
         if lines is not None:
-            block_h = len(lines) * size * MM_PER_PT * line_height
+            block_h = (font.cap_height_mm(size) + (len(lines) - 1) * size * MM_PER_PT * line_height
+                       if caps else len(lines) * size * MM_PER_PT * line_height)
             if block_h <= box["h"] + 1e-9:
                 return {
                     "lines": lines,
@@ -158,7 +160,9 @@ def _fit_text(text: str, font: Font, slot: dict) -> dict:
         "overflow": True,
         "measured_width_mm": _round(
             max(font.text_width_mm(l, min_size, spacing) for l in lines)),
-        "block_height_mm": _round(len(lines) * min_size * MM_PER_PT * line_height),
+        "block_height_mm": _round(
+            font.cap_height_mm(min_size) + (len(lines) - 1) * min_size * MM_PER_PT * line_height
+            if caps else len(lines) * min_size * MM_PER_PT * line_height),
     }
 
 
@@ -401,8 +405,15 @@ def build_manifest(schema: dict, family: dict, card: CardData,
             size_mm = fitted["size_pt"] * MM_PER_PT
             box = slot["box"]
             align = slot.get("align", "left")
+            # Bei Versalsatz ist die Box die VERSALHOEHE, nicht die Em-Hoehe:
+            # box.y ist die Oberkante der Grossbuchstaben. Sonst steht ueber
+            # dem Text ein Viertel leerer Oberlaengenraum, der Satz sitzt zu
+            # tief und ragt unten aus dem Band. Ein Setzer misst so, also
+            # misst die Engine auch so.
+            erste = (font.cap_height_mm(fitted["size_pt"])
+                     if slot.get("optical") == "caps" else size_mm * 0.80)
             fitted["baselines_mm"] = [
-                _round(box["y"] + size_mm * 0.80 + i * size_mm * 1.16)
+                _round(box["y"] + erste + i * size_mm * 1.16)
                 for i in range(len(fitted["lines"]))]
             fitted["anchor_x_mm"] = _round(
                 box["x"] if align == "left"
