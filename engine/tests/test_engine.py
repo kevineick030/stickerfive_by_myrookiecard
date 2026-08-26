@@ -89,7 +89,7 @@ class TestTextsatz(unittest.TestCase):
         self.assertEqual(p["size_pt"], p["declared_size_pt"])
 
     def test_langer_name_wird_verkleinert_statt_abgeschnitten(self):
-        p = slot_of(manifest(make_card(player_name="Đorđe Đorđević-Petrović")), "front", "player_name")
+        p = slot_of(manifest(make_card(player_name="Đorđe Đorđević")), "front", "player_name")
         self.assertTrue(p["autofit_applied"])
         self.assertLess(p["size_pt"], p["declared_size_pt"])
         self.assertGreaterEqual(p["size_pt"], p["min_size_pt"])
@@ -102,7 +102,7 @@ class TestTextsatz(unittest.TestCase):
         self.assertTrue(any(f.code == "TEXT_OVERFLOW" for f in check(manifest(card))))
 
     def test_diakritika_werden_als_vorhanden_erkannt(self):
-        p = slot_of(manifest(make_card(player_name="Đorđe Đorđević-Petrović")), "front", "player_name")
+        p = slot_of(manifest(make_card(player_name="Đorđe Đorđević")), "front", "player_name")
         self.assertEqual(p["missing_glyphs"], [])
 
     def test_fehlende_glyphe_faellt_auf(self):
@@ -190,21 +190,21 @@ class TestGate1(unittest.TestCase):
         self.assertTrue(any(f.code == "NO_QA_REGION" for f in check(manifest(schema=schema))))
 
 
-class TestDesign4(unittest.TestCase):
+class TestDesign5(unittest.TestCase):
     """Die eine bewusste Abweichung vom gemeinsamen Slot-Schema."""
 
     def test_gruppenfoto_ohne_landmarks_nutzt_cover(self):
         gruppe = PhotoAsset("g" * 64, 3000, 2000, None)
-        m = manifest(photo=gruppe, family="DESIGN-4")
+        m = manifest(photo=gruppe, family="DESIGN-5")
         self.assertEqual(photo_of(m)["fit_mode"], "COVER")
         self.assertTrue(passed(check(m)))
 
     def test_rueckennummer_ist_ausgeblendet(self):
-        m = manifest(photo=PhotoAsset("g" * 64, 3000, 2000, None), family="DESIGN-4")
+        m = manifest(photo=PhotoAsset("g" * 64, 3000, 2000, None), family="DESIGN-5")
         self.assertFalse(any(p["slot"] == "jersey_number" for p in m["front"]["placements"]))
 
     def test_name_kommt_vom_team(self):
-        m = manifest(photo=PhotoAsset("g" * 64, 3000, 2000, None), family="DESIGN-4")
+        m = manifest(photo=PhotoAsset("g" * 64, 3000, 2000, None), family="DESIGN-5")
         self.assertEqual(slot_of(m, "front", "player_name")["text"], "D-JUGEND")
 
 

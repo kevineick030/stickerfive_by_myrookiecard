@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "status": "PLATZHALTER - Schwellwerte nach den ersten Betriebswochen aus echten Ablehnungsgruenden nachschaerfen",
+  "status": "Schwellwerte am 2026-08-26 an fuenf echten Elternfotos kalibriert (assets/beispielfotos, tools/photo_check.py). Nach den ersten Betriebswochen aus echten Ablehnungsgruenden nachschaerfen.",
   "applies_to_slot_schema": "TC-A@1.0.0",
   "note": "Eine Quelle, drei Ausspielungen: die Erklaerstrecke beim Partner, die Sofortpruefung im Upload-Dialog (Gate -1) und die verbindliche Eingangsvalidierung (Gate 0) werden alle hieraus abgeleitet. Ohne gemeinsame Quelle laufen sie garantiert auseinander.",
   "normalization": {
@@ -50,9 +50,9 @@
     {
       "id": "head_height_px",
       "metric": "Kopfhöhe im Quellbild in Pixeln",
-      "pass": ">= 283 px",
-      "class_b_from": "241 px",
-      "fail_below": "241 px",
+      "pass": ">= 272 px",
+      "class_b_from": "231 px",
+      "fail_below": "231 px",
       "reason_code": "PHOTO_HEAD_TOO_FEW_PIXELS",
       "message_de": "Der Kopf ist im Bild zu klein, um scharf gedruckt zu werden.",
       "hint_de": "Geh näher ran, statt das Bild später zu vergrößern.",
@@ -269,5 +269,48 @@
       "sharpness"
     ],
     "review": "Nach vier Betriebswochen aus den tatsaechlichen reason_codes neu bestimmen."
+  },
+  "messbare_signale": {
+    "note": "Was sich OHNE Modell rechnen laesst und deshalb schon im Upload-Dialog laufen kann (Gate -1). tools/photo_check.py ist die Referenzimplementierung; die Zahlen stammen aus den fuenf Beispielfotos, nicht aus der Literatur.",
+    "hintergrund_streuung": {
+      "messung": "Standardabweichung der Helligkeit im oberen Rand und in den oberen 55 % der Seitenraender",
+      "ruhig": "< 30",
+      "grenzwertig": "30 bis 45",
+      "unruhig": "> 45",
+      "gemessen": {
+        "glatte Wand": "9 bis 13",
+        "Wand mit Tuerrahmen": 34.5,
+        "Sportplatz mit Zuschauern": 25.2,
+        "Hecke und Zaun": 24.8
+      },
+      "kalibrierhinweis": "Der erste Ansatz mass den GANZEN Bildrand und meldete jede glatte Wand als unruhig - bei einem Brustbild fuellt der Koerper die untere Kante. Genau der Fehler, den man ohne echte Fotos nicht findet."
+    },
+    "schaerfe": {
+      "messung": "Varianz des Laplace-Filters auf 900 px Breite",
+      "scharf": "> 150",
+      "grenzwertig": "60 bis 150",
+      "unscharf": "< 60",
+      "gemessen": {
+        "12-MP-Original": 595,
+        "3-MP-Kopie": 226,
+        "0,8-MP-Kopie": 78.5,
+        "hochskalierter Ausschnitt": 22.2
+      }
+    },
+    "belichtung": {
+      "zu_dunkel": "mittlere Helligkeit < 60",
+      "ueberstrahlt": "> 8 % der Pixel ueber 250"
+    }
+  },
+  "befund_stichprobe": {
+    "datum": "2026-08-26",
+    "anzahl": 5,
+    "ergebnis": {
+      "A - direkt verwendbar": 1,
+      "B - verwendbar, wenig Reserve": 3,
+      "C - Neuaufnahme": 1
+    },
+    "wichtigster_befund": "Nur EINES der fuenf Fotos war das Original aus der Kamera (12 MP). Es ist zugleich das einzige mit klarer Klasse A. Die uebrigen waren Kopien mit 0,8 bis 5 MP - weitergeleitet, zugeschnitten oder als Bildschirmfoto gesichert. Der Uploaddialog muss deshalb aktiv nach dem Original fragen, nicht nur eine Datei entgegennehmen.",
+    "haeufigster_fehler": "Zu nah heran. Das schlechteste Foto hatte eine Kopfhoehe von rund 55 % der Bildhoehe; erlaubt sind bei dieser Bildbreite hoechstens 30 %. Ein zu enger Ausschnitt laesst sich nicht reparieren - fehlendes Bild neben dem Kopf kann niemand nachliefern."
   }
 }

@@ -8,7 +8,7 @@ insert into slot_schema (id, version, definition) values
   ('TC-A@1.0.0', '1.0.0', $json${
   "id": "TC-A",
   "version": "1.0.0",
-  "status": "Geometrie an der echten leeren Vorlage 'Schwarz Prizm' gemessen (2026-08-26). Alle vier Prizm-Designs teilen dieses Raster; Abweichungen gehoeren in slot_overrides.",
+  "status": "An den echten leeren Vorlagen ausgemessen (2026-08-26, 1438 x 2000 px = 63 x 88 mm). blau, schwarz und gold teilen dieses Raster; gold sitzt 0,6 mm rechts und 1,4 mm tiefer, premium hat ein eigenes Layout - beides in slot_overrides.",
   "note": "Alle vier Templates teilen dieses Schema. Es unterscheiden sich nur Grafik, Farbwelt und Druckspezifikation. Ergebnis: ein Renderer, ein QA-Regelsatz, ein Golden Set.",
   "geometry": {
     "unit": "mm",
@@ -26,9 +26,9 @@ insert into slot_schema (id, version, definition) values
         "type": "image",
         "box": {
           "x": 5.0,
-          "y": 13.0,
+          "y": 12.5,
           "w": 53.0,
-          "h": 52.0
+          "h": 50.0
         },
         "fit_mode": "ANCHOR",
         "anchors": {
@@ -40,10 +40,10 @@ insert into slot_schema (id, version, definition) values
         "note": "Die Ankerregel ist der Grund, warum 60 unterschiedlich geschnittene Handyfotos wie ein Set aussehen. Der Renderer berechnet Skalierung und Versatz aus den Landmarks aus Schicht A.",
         "required": true,
         "derived_requirements": {
-          "head_height_mm_on_card": 23.92,
-          "min_head_height_px": 283,
+          "head_height_mm_on_card": 23.0,
+          "min_head_height_px": 272,
           "note": "HERGELEITET aus box.h und head_height_ratio, nicht geschaetzt: damit der Kopf nach der Ankerskalierung noch 300 dpi hat, muss er im Quellbild mindestens 283 px hoch sein. tools/photo_requirements.py rechnet das aus dem Schema nach; Gate 1 prueft die Folge (LOW_EFFECTIVE_DPI).",
-          "min_image_width_per_head_height": 2.216,
+          "min_image_width_per_head_height": 2.304,
           "min_above_eye_per_head_height": 0.826,
           "min_below_eye_per_head_height": 1.348,
           "framing_note": "Damit das Bild den Slot ohne Aufskalieren deckt, muss um den Kopf herum genug Bild liegen: Breite >= 2.22 x Kopfhoehe, ueber der Augenlinie >= 0.83 x Kopfhoehe, darunter >= 1.35 x Kopfhoehe. Alles aus box und anchors hergeleitet, siehe tools/photo_requirements.py."
@@ -89,34 +89,34 @@ insert into slot_schema (id, version, definition) values
         "id": "player_name",
         "type": "text",
         "box": {
-          "x": 9.6,
+          "x": 10.0,
           "y": 4.0,
-          "w": 47.0,
-          "h": 4.6
+          "w": 34.0,
+          "h": 4.2
         },
         "source": "person.display_name",
         "font": "display",
-        "size_pt": 11.0,
+        "size_pt": 10.0,
         "min_size_pt": 8.0,
         "align": "center",
         "transform": "uppercase",
         "max_lines": 1,
         "qa_region": true,
-        "note": "Das schwarze Namensband der Vorlage reicht von 2,3 bis 8,6 mm. Der TEXT sitzt bewusst nur in dessen unterer Haelfte: ab 4 mm beginnt die Sicherheitszone, und Schrift darf beim Schneiden nicht angeschnitten werden. Grafik darf das, Text nicht. Prueffeld fuer Gate 3a; Autofit unter min_size_pt ist ein Gate-1-Fehler.",
+        "note": "Das schwarze Namensband der Vorlage reicht von 2,3 bis 8,6 mm und ist 34 mm breit. Der TEXT sitzt nur in dessen unterer Haelfte: ab 4 mm beginnt die Sicherheitszone, und Schrift darf beim Schneiden nicht angeschnitten werden - Grafik darf das, Text nicht. 10 pt ist die groesste Groesse, die in die 4,2 mm Boxhoehe passt; waere sie groesser, wuerde JEDER Name verkleinert und die Karten haetten nie dieselbe Namensgroesse. Prueffeld fuer Gate 3a; Autofit unter min_size_pt ist ein Gate-1-Fehler.",
         "required": true
       },
       {
         "id": "jersey_number",
         "type": "text",
         "box": {
-          "x": 46.0,
+          "x": 45.0,
           "y": 13.5,
           "w": 12.0,
-          "h": 10.0
+          "h": 8.0
         },
         "source": "person.jersey_number",
         "font": "display",
-        "size_pt": 24.0,
+        "size_pt": 19.0,
         "min_size_pt": 15.0,
         "align": "right",
         "transform": "none",
@@ -149,10 +149,10 @@ insert into slot_schema (id, version, definition) values
         "id": "club_name",
         "type": "text",
         "box": {
-          "x": 9.6,
-          "y": 9.0,
-          "w": 47.0,
-          "h": 3.1
+          "x": 10.0,
+          "y": 8.8,
+          "w": 34.0,
+          "h": 3.2
         },
         "source": "club.name",
         "font": "body",
@@ -168,10 +168,10 @@ insert into slot_schema (id, version, definition) values
         "id": "signature",
         "type": "image",
         "box": {
-          "x": 11.7,
-          "y": 69.5,
-          "w": 48.3,
-          "h": 8.4
+          "x": 12.3,
+          "y": 66.8,
+          "w": 38.4,
+          "h": 11.4
         },
         "source": "person.signature",
         "fit_mode": "CONTAIN",
@@ -182,10 +182,10 @@ insert into slot_schema (id, version, definition) values
         "id": "serial",
         "type": "text",
         "box": {
-          "x": 21.5,
-          "y": 81.0,
-          "w": 20.0,
-          "h": 3.0
+          "x": 25.5,
+          "y": 79.8,
+          "w": 12.0,
+          "h": 4.0
         },
         "source": "card.copy_index_of_total",
         "font": "display",
@@ -198,7 +198,53 @@ insert into slot_schema (id, version, definition) values
         "required": true,
         "note": "Auflagennummer, in der Vorlage als '01/01' vorgezeichnet. Gate 3a liest sie zurueck."
       }
-    ]
+    ],
+    "overlays": [
+      {
+        "id": "signature_plate",
+        "box": {
+          "x": 10.5,
+          "y": 60.6,
+          "w": 42.0,
+          "h": 19.4
+        }
+      },
+      {
+        "id": "ornament_left",
+        "box": {
+          "x": 0.0,
+          "y": 31.0,
+          "w": 7.0,
+          "h": 23.0
+        }
+      },
+      {
+        "id": "ornament_right",
+        "box": {
+          "x": 56.0,
+          "y": 31.0,
+          "w": 7.0,
+          "h": 23.0
+        }
+      }
+    ],
+    "overlays_note": "Ausschnitte DERSELBEN flachen Vorlagendatei, die nach dem freigestellten Spieler noch einmal gezeichnet werden. Damit sitzt die Unterschriftenplatte vor dem Spieler, ohne dass die Grafik in Ebenen zerlegt werden muesste. Ein Bild je Design genuegt.",
+    "patches": [
+      {
+        "id": "serial_overprint",
+        "box": {
+          "x": 25.5,
+          "y": 79.6,
+          "w": 12.0,
+          "h": 6.0
+        },
+        "source_offset": {
+          "dx": 0.0,
+          "dy": -8.0
+        }
+      }
+    ],
+    "patches_note": "BEFUND 2026-08-26: auf allen vier gelieferten Vorlagen ist die Auflagennummer bereits eingedruckt (01/01, bei Premium #01/01). Sie wechselt aber je Kopie. Bis es Fassungen ohne sie gibt, wird die Stelle mit Struktur von 8 mm darueber ueberdeckt - auf Kristall unsichtbar, weil das Muster zufaellig ist. Sauberer ist ein Export ohne die Nummer."
   },
   "back": {
     "slots": [
@@ -313,34 +359,105 @@ insert into slot_schema (id, version, definition) values
   "families": [
     {
       "id": "DESIGN-1",
-      "name": "Design 1",
-      "role": "FIELD",
+      "name": "Blau Prizm",
+      "role": null,
       "print_spec": "PS-STD",
       "token_per_copy": true,
       "slot_overrides": {},
-      "note": "Vorgesehen fuer Feldspieler. Name ist ein Platzhalter."
+      "note": "Blau Prizm. Traegt das Basisraster unveraendert."
     },
     {
       "id": "DESIGN-2",
-      "name": "Design 2",
-      "role": "KEEPER",
+      "name": "Schwarz Prizm",
+      "role": null,
       "print_spec": "PS-STD",
       "token_per_copy": true,
       "slot_overrides": {},
-      "note": "Vorgesehen fuer Torwart. Name ist ein Platzhalter."
+      "note": "Schwarz Prizm. Deckungsgleich mit Blau (Messabweichung < 0,4 mm)."
     },
     {
       "id": "DESIGN-3",
-      "name": "Design 3",
-      "role": "COACH",
+      "name": "Gold Prizm",
+      "role": null,
       "print_spec": "PS-GOLD",
       "token_per_copy": true,
-      "slot_overrides": {},
-      "note": "PLATZHALTER-ANNAHME: auf PS-GOLD gesetzt, damit der Pfad mit zwei Druckspezifikationen real durchlaufen wird. Auf PS-STD aendern, sobald feststeht, ob es eine Veredelung gibt."
+      "slot_overrides": {
+        "signature": {
+          "box": {
+            "x": 12.9,
+            "y": 68.2,
+            "w": 38.4,
+            "h": 11.4
+          }
+        }
+      },
+      "note": "Gold Prizm. Die Unterschriftenplatte sitzt 0,6 mm rechts und 1,4 mm tiefer als bei Blau und Schwarz - automatisch gemessen, nicht geschaetzt."
     },
     {
       "id": "DESIGN-4",
-      "name": "Design 4",
+      "name": "Premium Gold",
+      "role": null,
+      "print_spec": "PS-GOLD",
+      "token_per_copy": true,
+      "slot_overrides": {
+        "photo": {
+          "box": {
+            "x": 7.0,
+            "y": 14.0,
+            "w": 49.0,
+            "h": 58.0
+          }
+        },
+        "player_name": {
+          "box": {
+            "x": 11.5,
+            "y": 75.0,
+            "w": 40.0,
+            "h": 4.6
+          },
+          "align": "center"
+        },
+        "club_name": {
+          "box": {
+            "x": 11.5,
+            "y": 80.0,
+            "w": 40.0,
+            "h": 3.2
+          },
+          "align": "center"
+        },
+        "jersey_number": {
+          "box": {
+            "x": 25.5,
+            "y": 64.0,
+            "w": 12.0,
+            "h": 8.0
+          },
+          "align": "center"
+        },
+        "signature": {
+          "box": {
+            "x": 16.0,
+            "y": 56.0,
+            "w": 31.0,
+            "h": 9.0
+          }
+        },
+        "serial": {
+          "box": {
+            "x": 44.2,
+            "y": 10.0,
+            "w": 13.4,
+            "h": 4.6
+          },
+          "align": "right"
+        }
+      },
+      "note": "Premium Gold. Eigenes Layout: Name und Verein unten auf der dunklen Platte, Auflagennummer oben rechts, kein vorgesehenes Unterschriftenfeld - der Slot liegt behelfsweise ueber dem unteren Bilddrittel. Hier braucht es eine Designentscheidung."
+    },
+    {
+      "id": "DESIGN-5",
+      "name": "Mannschaftskarte (Konzept)",
       "role": null,
       "print_spec": "PS-STD",
       "token_per_copy": true,
@@ -354,9 +471,12 @@ insert into slot_schema (id, version, definition) values
         "jersey_number": {
           "required": false,
           "hidden": true
+        },
+        "signature": {
+          "hidden": true
         }
       },
-      "note": "Vorgesehen als Mannschaftskarte und damit die EINE bewusste Abweichung: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot."
+      "note": "Noch nicht bestellt, aber der Beleg dafuer, dass slot_overrides traegt: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot, der Name kommt vom Team statt von der Person, Rueckennummer und Unterschrift entfallen. Kommt spaeter ein Design mit anderen Angaben, geht es genauso."
     }
   ],
   "token_policy": {
@@ -373,7 +493,7 @@ update photo_spec set is_active = false where is_active;
 insert into photo_spec (version, rules, is_active) values
   ('1.0.0', $json${
   "version": "1.0.0",
-  "status": "PLATZHALTER - Schwellwerte nach den ersten Betriebswochen aus echten Ablehnungsgruenden nachschaerfen",
+  "status": "Schwellwerte am 2026-08-26 an fuenf echten Elternfotos kalibriert (assets/beispielfotos, tools/photo_check.py). Nach den ersten Betriebswochen aus echten Ablehnungsgruenden nachschaerfen.",
   "applies_to_slot_schema": "TC-A@1.0.0",
   "note": "Eine Quelle, drei Ausspielungen: die Erklaerstrecke beim Partner, die Sofortpruefung im Upload-Dialog (Gate -1) und die verbindliche Eingangsvalidierung (Gate 0) werden alle hieraus abgeleitet. Ohne gemeinsame Quelle laufen sie garantiert auseinander.",
   "normalization": {
@@ -423,9 +543,9 @@ insert into photo_spec (version, rules, is_active) values
     {
       "id": "head_height_px",
       "metric": "Kopfhöhe im Quellbild in Pixeln",
-      "pass": ">= 283 px",
-      "class_b_from": "241 px",
-      "fail_below": "241 px",
+      "pass": ">= 272 px",
+      "class_b_from": "231 px",
+      "fail_below": "231 px",
       "reason_code": "PHOTO_HEAD_TOO_FEW_PIXELS",
       "message_de": "Der Kopf ist im Bild zu klein, um scharf gedruckt zu werden.",
       "hint_de": "Geh näher ran, statt das Bild später zu vergrößern.",
@@ -642,6 +762,49 @@ insert into photo_spec (version, rules, is_active) values
       "sharpness"
     ],
     "review": "Nach vier Betriebswochen aus den tatsaechlichen reason_codes neu bestimmen."
+  },
+  "messbare_signale": {
+    "note": "Was sich OHNE Modell rechnen laesst und deshalb schon im Upload-Dialog laufen kann (Gate -1). tools/photo_check.py ist die Referenzimplementierung; die Zahlen stammen aus den fuenf Beispielfotos, nicht aus der Literatur.",
+    "hintergrund_streuung": {
+      "messung": "Standardabweichung der Helligkeit im oberen Rand und in den oberen 55 % der Seitenraender",
+      "ruhig": "< 30",
+      "grenzwertig": "30 bis 45",
+      "unruhig": "> 45",
+      "gemessen": {
+        "glatte Wand": "9 bis 13",
+        "Wand mit Tuerrahmen": 34.5,
+        "Sportplatz mit Zuschauern": 25.2,
+        "Hecke und Zaun": 24.8
+      },
+      "kalibrierhinweis": "Der erste Ansatz mass den GANZEN Bildrand und meldete jede glatte Wand als unruhig - bei einem Brustbild fuellt der Koerper die untere Kante. Genau der Fehler, den man ohne echte Fotos nicht findet."
+    },
+    "schaerfe": {
+      "messung": "Varianz des Laplace-Filters auf 900 px Breite",
+      "scharf": "> 150",
+      "grenzwertig": "60 bis 150",
+      "unscharf": "< 60",
+      "gemessen": {
+        "12-MP-Original": 595,
+        "3-MP-Kopie": 226,
+        "0,8-MP-Kopie": 78.5,
+        "hochskalierter Ausschnitt": 22.2
+      }
+    },
+    "belichtung": {
+      "zu_dunkel": "mittlere Helligkeit < 60",
+      "ueberstrahlt": "> 8 % der Pixel ueber 250"
+    }
+  },
+  "befund_stichprobe": {
+    "datum": "2026-08-26",
+    "anzahl": 5,
+    "ergebnis": {
+      "A - direkt verwendbar": 1,
+      "B - verwendbar, wenig Reserve": 3,
+      "C - Neuaufnahme": 1
+    },
+    "wichtigster_befund": "Nur EINES der fuenf Fotos war das Original aus der Kamera (12 MP). Es ist zugleich das einzige mit klarer Klasse A. Die uebrigen waren Kopien mit 0,8 bis 5 MP - weitergeleitet, zugeschnitten oder als Bildschirmfoto gesichert. Der Uploaddialog muss deshalb aktiv nach dem Original fragen, nicht nur eine Datei entgegennehmen.",
+    "haeufigster_fehler": "Zu nah heran. Das schlechteste Foto hatte eine Kopfhoehe von rund 55 % der Bildhoehe; erlaubt sind bei dieser Bildbreite hoechstens 30 %. Ein zu enger Ausschnitt laesst sich nicht reparieren - fehlendes Bild neben dem Kopf kann niemand nachliefern."
   }
 }$json$::jsonb, true)
 on conflict (version) do update set rules = excluded.rules, is_active = excluded.is_active;
@@ -652,26 +815,95 @@ on conflict (version) do update set rules = excluded.rules, is_active = excluded
 insert into design_version (family_id, version, slot_schema_id, print_spec_id, assets)
   values ('DESIGN-1', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
   "slot_overrides": {},
-  "note": "Vorgesehen fuer Feldspieler. Name ist ein Platzhalter."
+  "note": "Blau Prizm. Traegt das Basisraster unveraendert."
 }$json$::jsonb)
 on conflict (family_id, version) do update set assets = excluded.assets, print_spec_id = excluded.print_spec_id;
 
 insert into design_version (family_id, version, slot_schema_id, print_spec_id, assets)
   values ('DESIGN-2', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
   "slot_overrides": {},
-  "note": "Vorgesehen fuer Torwart. Name ist ein Platzhalter."
+  "note": "Schwarz Prizm. Deckungsgleich mit Blau (Messabweichung < 0,4 mm)."
 }$json$::jsonb)
 on conflict (family_id, version) do update set assets = excluded.assets, print_spec_id = excluded.print_spec_id;
 
 insert into design_version (family_id, version, slot_schema_id, print_spec_id, assets)
   values ('DESIGN-3', '1.0.0', 'TC-A@1.0.0', 'PS-GOLD', $json${
-  "slot_overrides": {},
-  "note": "PLATZHALTER-ANNAHME: auf PS-GOLD gesetzt, damit der Pfad mit zwei Druckspezifikationen real durchlaufen wird. Auf PS-STD aendern, sobald feststeht, ob es eine Veredelung gibt."
+  "slot_overrides": {
+    "signature": {
+      "box": {
+        "x": 12.9,
+        "y": 68.2,
+        "w": 38.4,
+        "h": 11.4
+      }
+    }
+  },
+  "note": "Gold Prizm. Die Unterschriftenplatte sitzt 0,6 mm rechts und 1,4 mm tiefer als bei Blau und Schwarz - automatisch gemessen, nicht geschaetzt."
 }$json$::jsonb)
 on conflict (family_id, version) do update set assets = excluded.assets, print_spec_id = excluded.print_spec_id;
 
 insert into design_version (family_id, version, slot_schema_id, print_spec_id, assets)
-  values ('DESIGN-4', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
+  values ('DESIGN-4', '1.0.0', 'TC-A@1.0.0', 'PS-GOLD', $json${
+  "slot_overrides": {
+    "photo": {
+      "box": {
+        "x": 7.0,
+        "y": 14.0,
+        "w": 49.0,
+        "h": 58.0
+      }
+    },
+    "player_name": {
+      "box": {
+        "x": 11.5,
+        "y": 75.0,
+        "w": 40.0,
+        "h": 4.6
+      },
+      "align": "center"
+    },
+    "club_name": {
+      "box": {
+        "x": 11.5,
+        "y": 80.0,
+        "w": 40.0,
+        "h": 3.2
+      },
+      "align": "center"
+    },
+    "jersey_number": {
+      "box": {
+        "x": 25.5,
+        "y": 64.0,
+        "w": 12.0,
+        "h": 8.0
+      },
+      "align": "center"
+    },
+    "signature": {
+      "box": {
+        "x": 16.0,
+        "y": 56.0,
+        "w": 31.0,
+        "h": 9.0
+      }
+    },
+    "serial": {
+      "box": {
+        "x": 44.2,
+        "y": 10.0,
+        "w": 13.4,
+        "h": 4.6
+      },
+      "align": "right"
+    }
+  },
+  "note": "Premium Gold. Eigenes Layout: Name und Verein unten auf der dunklen Platte, Auflagennummer oben rechts, kein vorgesehenes Unterschriftenfeld - der Slot liegt behelfsweise ueber dem unteren Bilddrittel. Hier braucht es eine Designentscheidung."
+}$json$::jsonb)
+on conflict (family_id, version) do update set assets = excluded.assets, print_spec_id = excluded.print_spec_id;
+
+insert into design_version (family_id, version, slot_schema_id, print_spec_id, assets)
+  values ('DESIGN-5', '1.0.0', 'TC-A@1.0.0', 'PS-STD', $json${
   "slot_overrides": {
     "photo": {
       "fit_mode": "COVER"
@@ -682,9 +914,12 @@ insert into design_version (family_id, version, slot_schema_id, print_spec_id, a
     "jersey_number": {
       "required": false,
       "hidden": true
+    },
+    "signature": {
+      "hidden": true
     }
   },
-  "note": "Vorgesehen als Mannschaftskarte und damit die EINE bewusste Abweichung: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot."
+  "note": "Noch nicht bestellt, aber der Beleg dafuer, dass slot_overrides traegt: ein Gruppenfoto hat keine Kopf-Anker, also greift fit_mode COVER auf demselben Slot, der Name kommt vom Team statt von der Person, Rueckennummer und Unterschrift entfallen. Kommt spaeter ein Design mit anderen Angaben, geht es genauso."
 }$json$::jsonb)
 on conflict (family_id, version) do update set assets = excluded.assets, print_spec_id = excluded.print_spec_id;
 
