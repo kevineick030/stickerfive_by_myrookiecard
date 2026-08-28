@@ -33,7 +33,7 @@ GEO = SCHEMA["geometry"]
 # verkleinert werden und wirkten dadurch beliebig. Sobald die Originalschrift
 # vorliegt, wird hier nur der Pfad getauscht; alle Groessen bleiben gueltig,
 # weil die Engine mit echten Schriftmetriken rechnet.
-TTF = {"display": str(ROOT / "assets" / "fonts" / "montserrat-extrabold.ttf"),
+TTF = {"display": str(ROOT / "assets" / "fonts" / "montserrat-semibold.ttf"),
        "body": str(ROOT / "assets" / "fonts" / "poppins-semibold.ttf")}
 FONTS = {k: load_font(v) for k, v in TTF.items()}
 

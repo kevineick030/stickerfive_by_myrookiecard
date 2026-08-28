@@ -24,7 +24,7 @@ from engine.layout import CardData, Landmarks, PhotoAsset, build_manifest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((ROOT / "specs" / "slot_schema.v1.json").read_text(encoding="utf-8"))
 FAMILIES = {f["id"]: f for f in SCHEMA["families"]}
-TTF = {"display": str(ROOT / "assets" / "fonts" / "montserrat-extrabold.ttf"),
+TTF = {"display": str(ROOT / "assets" / "fonts" / "montserrat-semibold.ttf"),
        "body": str(ROOT / "assets" / "fonts" / "poppins-semibold.ttf")}
 FONTS = {k: load_font(v) for k, v in TTF.items()}
 

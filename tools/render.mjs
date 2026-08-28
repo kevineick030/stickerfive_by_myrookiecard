@@ -43,7 +43,9 @@ function seite(plan) {
 
   const flecken = nurText ? '' : (plan.patches || []).map(o => {
     const s = o.source_offset || { dx: 0, dy: 0 };
-    return `<div class="stueck" style="left:${o.box.x}mm;top:${o.box.y}mm;width:${o.box.w}mm;
+    // Weiche Kante: ein hart beschnittenes Rechteck ist im Kristall als
+    // Naht sichtbar, auch wenn die Struktur darin stimmt.
+    return `<div class="stueck weich" style="left:${o.box.x}mm;top:${o.box.y}mm;width:${o.box.w}mm;
       height:${o.box.h}mm;background-position:${-(o.box.x + s.dx)}mm ${-(o.box.y + s.dy)}mm"></div>`;
   }).join('');
   const decken = nurText ? '' : (plan.overlays || []).map(o =>
@@ -71,7 +73,7 @@ function seite(plan) {
     }
     const anker = { center: 'middle', right: 'end', left: 'start' }[x.align] || 'start';
     const tief = (x.slot === 'jersey_number' || x.slot === 'serial')
-      ? ` filter="drop-shadow(0 ${(groesse * 0.05).toFixed(3)}mm ${(groesse * 0.055).toFixed(3)}mm rgba(6,9,16,.75))"`
+      ? ` filter="drop-shadow(0 ${(groesse * 0.028).toFixed(3)}mm ${(groesse * 0.032).toFixed(3)}mm rgba(6,9,16,.62))"`
       : '';
     x.lines.forEach((zeile, i) => zeilen.push(
       `<text x="${x.anchor_x_mm}" y="${x.baselines_mm[i]}" text-anchor="${anker}"
@@ -97,6 +99,9 @@ function seite(plan) {
     .sig{position:absolute;left:${(plan.unterschriftBox||{x:0}).x}mm;
       top:${(plan.unterschriftBox||{y:0}).y}mm;width:${(plan.unterschriftBox||{w:0}).w}mm;
       height:${(plan.unterschriftBox||{h:0}).h}mm;object-fit:contain}
+    .stueck.weich{-webkit-mask-image:radial-gradient(ellipse 62% 58% at 50% 50%,
+      #000 55%, transparent 100%);mask-image:radial-gradient(ellipse 62% 58% at 50% 50%,
+      #000 55%, transparent 100%)}
     .satz{position:absolute;inset:0;width:${B}mm;height:${H}mm;overflow:visible}
     .satz text{font-weight:800;paint-order:stroke fill}
   </style>
