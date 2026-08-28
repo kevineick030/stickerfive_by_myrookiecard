@@ -34,18 +34,23 @@ function seite(plan) {
     `@font-face{font-family:"${n}";src:url(data:font/ttf;base64,${b64(p)}) format("truetype");}`).join('');
 
   const p = plan.placements;
-  const foto = p.find(x => x.slot === 'photo');
-  const [ox, oy] = foto.offset_mm, [pw, ph] = foto.placed_size_mm;
-  const fb = foto.box_mm;
+  // Textlayer-Plan: die Karte ist schon fertig, es fehlt nur der Satz.
+  const nurText = !!plan.fertigeKarte;
+  const foto = nurText ? null : p.find(x => x.slot === 'photo');
+  const [ox, oy] = foto ? foto.offset_mm : [0, 0];
+  const [pw, ph] = foto ? foto.placed_size_mm : [0, 0];
+  const fb = foto ? foto.box_mm : { x: 0, y: 0, w: 0, h: 0 };
 
-  const flecken = (plan.patches || []).map(o => {
+  const flecken = nurText ? '' : (plan.patches || []).map(o => {
     const s = o.source_offset || { dx: 0, dy: 0 };
     return `<div class="stueck" style="left:${o.box.x}mm;top:${o.box.y}mm;width:${o.box.w}mm;
       height:${o.box.h}mm;background-position:${-(o.box.x + s.dx)}mm ${-(o.box.y + s.dy)}mm"></div>`;
   }).join('');
-  const decken = (plan.overlays || []).map(o =>
+  const decken = nurText ? '' : (plan.overlays || []).map(o =>
     `<div class="stueck" style="left:${o.box.x}mm;top:${o.box.y}mm;width:${o.box.w}mm;
       height:${o.box.h}mm;background-position:${-o.box.x}mm ${-o.box.y}mm"></div>`).join('');
+  const sig = (nurText && plan.unterschrift && plan.unterschriftBox)
+    ? `<img class="sig" src="${datei(plan.unterschrift)}">` : '';
 
   // Text als SVG: dort ist die Grundlinie eine echte Koordinate (y), und ein
   // Verlauf laesst sich ueber die Glyphen legen, ohne dass die Zeile eine
@@ -87,15 +92,18 @@ function seite(plan) {
       overflow:hidden}
     .fenster img{position:absolute;left:${ox - fb.x}mm;top:${oy - fb.y}mm;
       width:${pw}mm;height:${ph}mm}
-    .stueck{position:absolute;background-image:url("${datei(plan.vorlage)}");
+    .stueck{position:absolute;${plan.vorlage ? `background-image:url("${datei(plan.vorlage)}");` : ''}
       background-size:${B}mm ${H}mm;background-repeat:no-repeat}
+    .sig{position:absolute;left:${(plan.unterschriftBox||{x:0}).x}mm;
+      top:${(plan.unterschriftBox||{y:0}).y}mm;width:${(plan.unterschriftBox||{w:0}).w}mm;
+      height:${(plan.unterschriftBox||{h:0}).h}mm;object-fit:contain}
     .satz{position:absolute;inset:0;width:${B}mm;height:${H}mm;overflow:visible}
     .satz text{font-weight:800;paint-order:stroke fill}
   </style>
   <div class="karte">
-    <img class="grund" src="${datei(plan.vorlage)}">
-    <div class="fenster"><img src="${datei(plan.spieler)}"></div>
-    ${decken}${flecken}${texte}
+    <img class="grund" src="${datei(plan.fertigeKarte || plan.vorlage)}">
+    ${nurText ? '' : `<div class="fenster"><img src="${datei(plan.spieler)}"></div>`}
+    ${decken}${flecken}${sig}${texte}
   </div>`;
 }
 

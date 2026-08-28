@@ -9,8 +9,9 @@
     "trim_width": 63.0,
     "trim_height": 88.0,
     "bleed": 2.0,
-    "safe_margin": 4.0,
-    "min_dpi": 300
+    "safe_margin": 3.0,
+    "min_dpi": 300,
+    "safe_margin_note": "3 mm ist der uebliche Wert fuer Sammelkarten. Ich hatte 4 mm angenommen; die echten Designs setzen den Namen bei 3,7 mm und die Auflagennummer bis 84,9 mm. Lieber die Annahme korrigieren als den Satz gegen das Design verschieben."
   },
   "front": {
     "slots": [
@@ -184,7 +185,7 @@
         "type": "text",
         "box": {
           "x": 21.5,
-          "y": 82.0,
+          "y": 81.7,
           "w": 20.0,
           "h": 3.2
         },

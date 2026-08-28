@@ -135,6 +135,9 @@ def _fit_text(text: str, font: Font, slot: dict) -> dict:
 
     caps = slot.get("optical") == "caps"
     step = 0.25
+    # Die letzte Stufe wird auf min_size geklemmt. Ohne das laeuft die
+    # Schleife an der Mindestgroesse VORBEI (7,7 - 0,25 ... = 5,45 statt 5,5)
+    # und meldet Ueberlauf fuer einen Text, der genau noch gepasst haette.
     while size >= min_size - 1e-9:
         lines = _wrap(text, font, size, box["w"], spacing, max_lines)
         if lines is not None:
@@ -149,7 +152,9 @@ def _fit_text(text: str, font: Font, slot: dict) -> dict:
                         max(font.text_width_mm(l, size, spacing) for l in lines)),
                     "block_height_mm": _round(block_h),
                 }
-        size -= step
+        size = max(min_size, size - step) if size - step < min_size else size - step
+        if size <= min_size and lines is None and _wrap(text, font, min_size, box['w'], spacing, max_lines) is None:
+            break
 
     # Auch bei min_size_pt passt es nicht: Gate 1 muss das sehen, nicht der Drucker.
     lines = _wrap(text, font, min_size, box["w"], spacing, max_lines) or [text]
